@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="ARSoft.Tools.Net" Version="2.2.9" />
+    <PackageReference Include="DNS" Version="7.0.0" />
   </ItemGroup>
 
 </Project>
