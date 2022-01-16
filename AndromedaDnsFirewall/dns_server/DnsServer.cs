@@ -86,24 +86,28 @@ namespace AndromedaDnsFirewall.dns_server
 
             return null;
         }
-        async void ProcessClient(TcpClient client)
+        async void ProcessClient(UdpReceiveResult client)
         {
-            using var stream = client.GetStream();
-            var buf = new byte[1024];
-            await stream.ReadAsync(buf, 0, buf.Length);
+            //using var stream = client.GetStream();
+            //var buf = new byte[1024];
+            //await stream.ReadAsync(buf, 0, buf.Length);
 
-            var buffer = await ReadIntoBufferAsync(client, stream, 2);
-            if (buffer == null) // client disconneted while reading or timeout
-                return;
+            var buffer = client.Buffer;
 
-            int offset = 0;
-            int length = ParseUShort(buffer, ref offset);
+            //var buffer = await ReadIntoBufferAsync(client, stream, 2);
+            //if (buffer == null) // client disconneted while reading or timeout
+            //    return;
 
-            buffer = await ReadIntoBufferAsync(client, stream, length);
-            if (buffer == null) // client disconneted while reading or timeout
-                return;
+            //int offset = 0;
+            //int length = ParseUShort(buffer, ref offset);
+
+            //buffer = await ReadIntoBufferAsync(client, stream, length);
+            //if (buffer == null) // client disconneted while reading or timeout
+            //    return;
 
             var msg = DnsMessage.Parse(buffer);
+
+
 
         }
         async public void Start()
@@ -111,14 +115,23 @@ namespace AndromedaDnsFirewall.dns_server
             var endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 53);
             UdpClient listener = new UdpClient(endPoint);
 
-            var res = await listener.ReceiveAsync();
-            res.Buffer
+            while (true)
+            {
+                var client = await listener.ReceiveAsync();
 
-            var client = await listener.AcceptTcpClientAsync();
+                ProcessClient(client); // no await, spawn new route!
+            }
+        }
 
-            ProcessClient(client); // no await, spawn new route!
+        public Action<DnsRequest> ProcessRequest;
 
+        async public void CompleteRequest(DnsRequest req)
+        {
 
         }
+    }
+    record DnsRequest
+    {
+
     }
 }
