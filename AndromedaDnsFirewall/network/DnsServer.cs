@@ -1,5 +1,4 @@
 ﻿using AndromedaDnsFirewall.Utils;
-using ARSoft.Tools.Net.Dns;
 using DNS.Protocol;
 using System;
 using System.Collections.Generic;
@@ -17,55 +16,72 @@ namespace AndromedaDnsFirewall.dns_server
     internal class DnsServer
     {
         UdpClient listener;
-        
+        UdpClient answener;
+
         async public void Start()
         {
 
             var endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 53);
             listener = new UdpClient(endPoint);
+            answener = new UdpClient();
+
+            const int SIO_UDP_CONNRESET = -1744830452;
+            listener.Client.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null);
+            //listener.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
             while (true)
             {
-                var client = await listener.ReceiveAsync();
-
-                var buffer = client.Buffer;
-
-                Request req = Request.FromArray(buffer);
-                //var msg = DnsMessage.Parse(buffer);
-
-                var item = new DnsItem()
+                try
                 {
-                    endPoint = client.RemoteEndPoint,
-                    //names = msg.Questions.Where(x => x.RecordType == RecordType.A).Select(x => x.Name.ToString()).ToArray(),
-                    request = req
-                };
+                    var client = await listener.ReceiveAsync();
 
-                
+                    var buffer = client.Buffer;
 
-                ProcessRequest(item);
+                    Request req = Request.FromArray(buffer);
+                    //var msg = DnsMessage.Parse(buffer);
+
+                    var item = new ServerItem()
+                    {
+                        endPoint = client.RemoteEndPoint,
+                        request = req
+                    };
+
+                    ProcessRequest(item);
+                }
+                catch(Exception ex)
+                {
+                    Log.Err(ex);
+                    await Task.Delay(1.sec());
+                }
             }
         }
 
-        public Action<DnsItem> ProcessRequest;
+        public Action<ServerItem> ProcessRequest;
 
-        async public void CompleteRequest(DnsItem req)
+        async public void CompleteRequest(ServerItem req)
         {
-            var answ = req.answer;
-            await listener.SendAsync(answ.ToArray());
-            //var msg = req.msg.CreateResponseInstance();
-            //msg.AnswerRecords.Add(new )
-            //req.answer.encode
-            //listener.SendAsync
+            if (req.rawanwer != null)
+            {
+                await answener.SendAsync(req.rawanwer, req.endPoint);
+            }
+            else
+            {
+                var answ = req.answer;
+                var arr = answ.ToArray();
+                await answener.SendAsync(arr, answ.Size, req.endPoint);
+            }
         }
 
     }
-    class DnsItem
+    class ServerItem
     {
         public IPEndPoint endPoint { get; init; }
 
         public Request request { get; init; }
 
         public Response answer { get; set; }
+
+        public byte[] rawanwer;
 
         //public string[] names { get; init; }
 
