@@ -1,7 +1,5 @@
 ﻿using AndromedaDnsFirewall.dns_server;
 using AndromedaDnsFirewall.Utils;
-using DNS.Protocol;
-using DNS.Protocol.ResourceRecords;
 using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
@@ -37,7 +35,9 @@ namespace AndromedaDnsFirewall.main
     {
         AllowWhiteList,
         AllowExceptBlackList,
-        AllowAll
+        AllowAll,
+        SimpleBypass
+
     }
 
     class StoreCache
@@ -45,7 +45,7 @@ namespace AndromedaDnsFirewall.main
         public Dictionary<string, CacheItem> cacheLst = new();
     }
 
-    record DnsElem(RecordType type, RecordClass cls, string data)
+    record DnsElem(DnsType type, DnsClass cls, string data)
     {
     }
 
@@ -75,45 +75,54 @@ namespace AndromedaDnsFirewall.main
         {
             try
             {
-                if (dnsItem.request.Questions[0].Name.ToString() == "www.bing.com")
-                {
-                    var rem = new IPEndPoint(IPAddress.Parse("8.8.8.8"), 53);
-                    //var my = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 54343);
-                    //var listener = new UdpClient(endPoint);
-                    var sender = new UdpClient(rem.AddressFamily);
+                //if (dnsItem.request.Questions[0].Name.ToString() == "www.bing.com")
+                //{
+                //    var rem = new IPEndPoint(IPAddress.Parse("8.8.8.8"), 53);
+                //    //var my = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 54343);
+                //    //var listener = new UdpClient(endPoint);
+                //    var sender = new UdpClient(rem.AddressFamily);
 
-                    await sender.SendAsync(dnsItem.request.ToArray(), dnsItem.request.Size, rem);
+                //    await sender.SendAsync(dnsItem.request.ToArray(), dnsItem.request.Size, rem);
 
-                    var result = await sender.ReceiveAsync();
+                //    var result = await sender.ReceiveAsync();
 
-                    var data = result.Buffer;
+                //    var data = result.Buffer;
 
 
-                    var msg = new Message();
-                    msg.Read(data);
+                //    var msg = new Message();
+                //    msg.Read(data);
 
-                    var buf3 = msg.ToByteArray();
+                //    var buf3 = msg.ToByteArray();
 
-                    //var buf2 = obj.
+                //    //var buf2 = obj.
 
-                    dnsItem.rawanwer = buf3;
-                    server.CompleteRequest(dnsItem);
-                    return;
+                //    dnsItem.rawanwer = buf3;
+                //    server.CompleteRequest(dnsItem);
+                //    return;
 
-                    var otherres = Response.FromArray(result.Buffer);
-                    var buf2 = otherres.ToArray();
+                //    var otherres = Response.FromArray(result.Buffer);
+                //    var buf2 = otherres.ToArray();
 
-                    dnsItem.answer = otherres;
-                    server.CompleteRequest(dnsItem);
+                //    dnsItem.answer = otherres;
+                //    server.CompleteRequest(dnsItem);
 
-                    return;
-                }
+                //    return;
+                //}
 
                 //SortedSet<RecordType>
 
+                if(storage.mode == WorkMode.SimpleBypass)
+                {
+                    // simple bypass request
+                    dnsItem.answ = await resolver.ResolveBypass(dnsItem.req);
+                    server.CompleteRequest(dnsItem);
+                    return;
+                }
+
+                var req = new Message();
+                req.Read(dnsItem.req);
                 var cur = new List<LogItem>();
-                List<DNS.Protocol.Question> newQ = new List<DNS.Protocol.Question>();
-                var req = dnsItem.request;
+                var newQ = new List<Question>();
                 foreach (var quest in req.Questions)
                 {
                     var name = quest.Name.ToString();
@@ -156,17 +165,17 @@ namespace AndromedaDnsFirewall.main
                     Log.Info($"New log entry: {elem}");
                 }
 
-                if (dnsItem.request.Questions.Any())
+                if (req.Questions.Any())
                 {
-                    dnsItem.answer = await resolver.ResolveBypass(dnsItem.request);
+                    dnsItem.answ = (await resolver.Resolve(req)).Buff;
                 }
                 else
                 {
-                    dnsItem.answer = Response.FromRequest(req);
+                    Message msg = new();
+                    msg.Id = req.Id;
+                    msg.Status = MessageStatus.Refused;
+                    dnsItem.answ = msg.ToByteArray();
                 }
-
-                // clear request?
-                dnsItem.answer.AnswerRecords.RemoveAll(x => !req.Questions.Any(y => y.Type == x.Type));
 
                 server.CompleteRequest(dnsItem);
             }
