@@ -5,8 +5,34 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AndromedaDnsFirewall"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded"
+                >
+    <Window.Resources>
+        <ContextMenu x:Key="MyContextMenu">
+            <MenuItem Header="Заблокировать" Click="MenuItem_Click" />
+            <MenuItem Header="Разрешить" Click="MenuItem_Click_1" />
+        </ContextMenu>
+    </Window.Resources>
     <Grid>
-        <Button Click="Button_Click">Test</Button>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel Name="modePanel" Orientation="Horizontal" VerticalAlignment="Center">
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Grid.Row="1">
+            <Button Margin="4" Click="Button_Click_1">Log</Button>
+            <Button Margin="4" Click="Button_Click_2">While list</Button>
+            <Button Margin="4" Click="Button_Click_3">Black list</Button>
+        </StackPanel>
+        <ListBox Name="lstLog" Grid.Row="2">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="ContextMenu" Value="{StaticResource MyContextMenu}">
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
     </Grid>
 </Window>

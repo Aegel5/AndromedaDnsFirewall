@@ -1,6 +1,7 @@
 ﻿using AndromedaDnsFirewall.dns_server;
 using AndromedaDnsFirewall.Utils;
 using Makaretu.Dns;
+using Nito.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,8 +34,8 @@ namespace AndromedaDnsFirewall.main
 
     enum WorkMode
     {
-        AllowWhiteList,
-        AllowExceptBlackList,
+        OnlyWhileList,
+        AllExceptBlackList,
         AllowAll,
         SimpleBypass
 
@@ -52,10 +53,10 @@ namespace AndromedaDnsFirewall.main
     // serialized to file
     class Storage
     {
-        public WorkMode mode = WorkMode.AllowAll;
+        public WorkMode mode = WorkMode.AllExceptBlackList;
 
-        public HashSet<DnsElem> whiteList = new();
-        public HashSet<DnsElem> blackList = new();
+        public HashSet<string> whiteList = new();
+        public HashSet<string> blackList = new();
 
         public StoreCache cache = new();
 
@@ -69,59 +70,26 @@ namespace AndromedaDnsFirewall.main
         DnsServer server = new();
         public Storage storage { get; private set; } =  new();
 
-        public List<LogItem> logLst = new();
+        public Deque<LogItem> logLst = new();
 
         async void ProcessRequest(ServerItem dnsItem)
         {
+            ushort reqId = 0;
+
             try
             {
-                //if (dnsItem.request.Questions[0].Name.ToString() == "www.bing.com")
-                //{
-                //    var rem = new IPEndPoint(IPAddress.Parse("8.8.8.8"), 53);
-                //    //var my = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 54343);
-                //    //var listener = new UdpClient(endPoint);
-                //    var sender = new UdpClient(rem.AddressFamily);
 
-                //    await sender.SendAsync(dnsItem.request.ToArray(), dnsItem.request.Size, rem);
-
-                //    var result = await sender.ReceiveAsync();
-
-                //    var data = result.Buffer;
-
-
-                //    var msg = new Message();
-                //    msg.Read(data);
-
-                //    var buf3 = msg.ToByteArray();
-
-                //    //var buf2 = obj.
-
-                //    dnsItem.rawanwer = buf3;
-                //    server.CompleteRequest(dnsItem);
-                //    return;
-
-                //    var otherres = Response.FromArray(result.Buffer);
-                //    var buf2 = otherres.ToArray();
-
-                //    dnsItem.answer = otherres;
-                //    server.CompleteRequest(dnsItem);
-
-                //    return;
-                //}
-
-                //SortedSet<RecordType>
-
-                if(storage.mode == WorkMode.SimpleBypass)
+                if (storage.mode == WorkMode.SimpleBypass)
                 {
                     // simple bypass request
                     dnsItem.answ = await resolver.ResolveBypass(dnsItem.req);
-                    server.CompleteRequest(dnsItem);
                     return;
                 }
 
                 var req = new Message();
                 req.Read(dnsItem.req);
-                var cur = new List<LogItem>();
+                reqId = req.Id;
+                //var cur = new List<LogItem>();
                 var newQ = new List<Question>();
                 foreach (var quest in req.Questions)
                 {
@@ -133,56 +101,73 @@ namespace AndromedaDnsFirewall.main
                     {
                         logitem = logitem with { type = LogType.Allowed };
                     }
-                    else if (storage.mode == WorkMode.AllowWhiteList)
+                    else if (storage.mode == WorkMode.OnlyWhileList)
                     {
-                        if (storage.whiteList.Contains(dnsElem))
+                        if (storage.whiteList.Contains(name))
                         {
                             logitem = logitem with { type = LogType.Allowed };
                         }
                     }
-                    else if (storage.mode == WorkMode.AllowExceptBlackList)
+                    else if (storage.mode == WorkMode.AllExceptBlackList)
                     {
-                        if (!storage.blackList.Contains(dnsElem))
+                        if (!storage.blackList.Contains(name))
                         {
                             logitem = logitem with { type = LogType.Allowed };
                         }
                     }
 
-                    if(logitem.type == LogType.Allowed)
+                    if (logitem.type == LogType.Allowed)
                     {
                         newQ.Add(quest);
                     }
 
-                    cur.Add(logitem);
+                    logLst.AddToFront(logitem);
+                    Log.Info($"New log entry: {logitem}");
+
+                    while(logLst.Count > 1000)
+                    {
+                        logLst.RemoveFromBack();
+                    }
                 }
 
-                req.Questions.Clear();
-                foreach (var elem in newQ)
-                    req.Questions.Add(elem);
+                LazyMessage lazy = new() { msg = req };
 
-                foreach (var elem in cur)
+                if (req.Questions.Count == newQ.Count)
                 {
-                    Log.Info($"New log entry: {elem}");
+                    lazy.buf = dnsItem.req; // optimize serialize
+                }
+                else
+                {
+                    req.Questions.Clear();
+                    foreach (var elem in newQ)
+                        req.Questions.Add(elem);
                 }
 
                 if (req.Questions.Any())
                 {
-                    dnsItem.answ = (await resolver.Resolve(req)).Buff;
+                    dnsItem.answ = (await resolver.Resolve(lazy)).BuffGet;
                 }
                 else
                 {
-                    Message msg = new();
-                    msg.Id = req.Id;
-                    msg.Status = MessageStatus.Refused;
+                    Message msg = new() { Id = reqId, Status = MessageStatus.Refused };
                     dnsItem.answ = msg.ToByteArray();
                 }
 
-                server.CompleteRequest(dnsItem);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Err(ex);
             }
+            finally
+            {
+                if(dnsItem.answ == null)
+                {
+                    Message msg = new() { Id = reqId, Status = MessageStatus.ServerFailure };
+                    dnsItem.answ = msg.ToByteArray();
+                }
+                server.CompleteRequest(dnsItem);
+            }
+
         }
 
 

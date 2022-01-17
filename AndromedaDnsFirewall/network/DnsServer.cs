@@ -1,5 +1,4 @@
 ﻿using AndromedaDnsFirewall.Utils;
-using DNS.Protocol;
 using System;
 using System.Collections.Generic;
 using System.IO;
