@@ -20,7 +20,7 @@ namespace AndromedaDnsFirewall.main
         //int next;
     }
 
-    record LogItem (LogType type, DnsElem elem)
+    record LogItem (LogType type, DnsElem elem, int count)
     {
     }
 
@@ -29,6 +29,7 @@ namespace AndromedaDnsFirewall.main
         //Pending, // пока не поддерживаем.
         Blocked,
         Allowed,
+        Error,
         //DenyNotSupported,
     }
 
@@ -72,14 +73,12 @@ namespace AndromedaDnsFirewall.main
 
         public Deque<LogItem> logLst = new();
 
-        async void ProcessRequest(ServerItem dnsItem)
-        {
+        async void ProcessRequest(ServerItem dnsItem) {
             ushort reqId = 0;
+            LogItem logitem = null;
 
-            try
-            {
-                if (!Quickst.Inst.LogEnable && !Quickst.Inst.UseCache && Quickst.Inst.mode == WorkMode.AllowAll)
-                {
+            try {
+                if (!Quickst.Inst.LogEnable && !Quickst.Inst.UseCache && Quickst.Inst.mode == WorkMode.AllowAll) {
                     // simple bypass request
                     dnsItem.answ = await resolver.ResolveBypass(dnsItem.req);
                     return;
@@ -88,79 +87,70 @@ namespace AndromedaDnsFirewall.main
                 var req = new Message();
                 req.Read(dnsItem.req);
                 reqId = req.Id;
-                //var cur = new List<LogItem>();
-                var newQ = new List<Question>();
-                foreach (var quest in req.Questions)
-                {
+                bool wasRemoved = false;
+                for (int i = req.Questions.Count - 1; i >= 0; i--) {
+                    var quest = req.Questions[i];
                     var name = quest.Name.ToString();
                     var dnsElem = new DnsElem(quest.Type, quest.Class, name);
-                    var logitem = new LogItem(LogType.Blocked, dnsElem);
+                    logitem = new LogItem(LogType.Blocked, dnsElem, 1);
 
-                    if (Quickst.Mode == WorkMode.AllowAll)
-                    {
+                    if (Quickst.Mode == WorkMode.AllowAll) {
                         logitem = logitem with { type = LogType.Allowed };
-                    }
-                    else if (Quickst.Mode == WorkMode.OnlyWhileList)
-                    {
-                        if (storage.whiteList.Contains(name))
-                        {
+                    } else if (Quickst.Mode == WorkMode.OnlyWhileList) {
+                        if (storage.whiteList.Contains(name)) {
                             logitem = logitem with { type = LogType.Allowed };
                         }
-                    }
-                    else if (Quickst.Mode == WorkMode.AllExceptBlackList)
-                    {
-                        if (!storage.blackList.Contains(name))
-                        {
+                    } else if (Quickst.Mode == WorkMode.AllExceptBlackList) {
+                        if (!storage.blackList.Contains(name)) {
                             logitem = logitem with { type = LogType.Allowed };
                         }
                     }
 
-                    if (logitem.type == LogType.Allowed)
-                    {
-                        newQ.Add(quest);
+                    if (logitem.type != LogType.Allowed) {
+                        req.Questions.RemoveAt(i);
+                        wasRemoved = true;
                     }
 
-                    logLst.AddToFront(logitem);
+                    if (logLst.Any()) {
+                        var first = logLst[0];
+                        if (first with { count = 1 } == logitem) {
+                            logitem = logitem with { count = first.count + 1 };
+                            logLst[0] = logitem;
+                        } else {
+                            logLst.AddToFront(logitem);
+                        }
+                    } else {
+                        logLst.AddToFront(logitem);
+                    }
+
                     Log.Info($"New log entry: {logitem}");
 
-                    while(logLst.Count > 1000)
-                    {
+                    while (logLst.Count > 1000) {
                         logLst.RemoveFromBack();
                     }
                 }
 
                 LazyMessage lazy = new() { msg = req };
 
-                if (req.Questions.Count == newQ.Count)
-                {
+                if (!wasRemoved) {
                     lazy.buf = dnsItem.req; // optimize serialize
                 }
-                else
-                {
-                    req.Questions.Clear();
-                    foreach (var elem in newQ)
-                        req.Questions.Add(elem);
-                }
 
-                if (req.Questions.Any())
-                {
+
+                if (req.Questions.Any()) {
                     dnsItem.answ = (await resolver.Resolve(lazy)).BuffGet;
-                }
-                else
-                {
+                } else {
                     Message msg = new() { Id = reqId, Status = MessageStatus.Refused };
                     dnsItem.answ = msg.ToByteArray();
                 }
 
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Log.Err(ex);
-            }
-            finally
-            {
-                if(dnsItem.answ == null)
-                {
+                if (logitem != null) {
+                    logitem = logitem with { type = LogType.Error };
+                }
+            } finally {
+                if (dnsItem.answ == null) {
                     Message msg = new() { Id = reqId, Status = MessageStatus.ServerFailure };
                     dnsItem.answ = msg.ToByteArray();
                 }
@@ -174,8 +164,6 @@ namespace AndromedaDnsFirewall.main
         {
             server.ProcessRequest = ProcessRequest;
             server.Start();
-
-            Log.Info("program started");
         }
     }
 }
