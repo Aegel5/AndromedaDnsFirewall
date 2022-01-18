@@ -20,17 +20,19 @@ namespace AndromedaDnsFirewall.main
         //int next;
     }
 
-    record LogItem (LogType type, DnsElem elem, int count)
+    record LogItem (LogType type, DnsElem elem)
     {
+        public int count { get; init; } = 1;
+
     }
 
     enum LogType
     {
-        //Pending, // пока не поддерживаем.
         Blocked,
         Allowed,
+        BlockedByBlackList,
+        AllowedByWhiteList,
         Error,
-        //DenyNotSupported,
     }
 
     enum WorkMode
@@ -52,32 +54,28 @@ namespace AndromedaDnsFirewall.main
     }
 
     // serialized to file
-    class Storage
-    {
 
+    internal class MainHolder
+    {
+        public StoreCache cache = new();
 
         public HashSet<string> whiteList = new();
         public HashSet<string> blackList = new();
 
-        public StoreCache cache = new();
-
-    }
-
-    internal class MainHolder
-    {
-
-
         DnsResolver resolver = new();
         DnsServer server = new();
-        public Storage storage { get; private set; } =  new();
+
+        public long logChangeId { get; private set; }
 
         public Deque<LogItem> logLst = new();
 
         async void ProcessRequest(ServerItem dnsItem) {
+
             ushort reqId = 0;
             LogItem logitem = null;
 
             try {
+
                 if (!Quickst.Inst.LogEnable && !Quickst.Inst.UseCache && Quickst.Inst.mode == WorkMode.AllowAll) {
                     // simple bypass request
                     dnsItem.answ = await resolver.ResolveBypass(dnsItem.req);
@@ -92,21 +90,36 @@ namespace AndromedaDnsFirewall.main
                     var quest = req.Questions[i];
                     var name = quest.Name.ToString();
                     var dnsElem = new DnsElem(quest.Type, quest.Class, name);
-                    logitem = new LogItem(LogType.Blocked, dnsElem, 1);
 
-                    if (Quickst.Mode == WorkMode.AllowAll) {
-                        logitem = logitem with { type = LogType.Allowed };
-                    } else if (Quickst.Mode == WorkMode.OnlyWhileList) {
-                        if (storage.whiteList.Contains(name)) {
-                            logitem = logitem with { type = LogType.Allowed };
-                        }
-                    } else if (Quickst.Mode == WorkMode.AllExceptBlackList) {
-                        if (!storage.blackList.Contains(name)) {
-                            logitem = logitem with { type = LogType.Allowed };
+                    logitem = new LogItem(LogType.Blocked, dnsElem);
+
+                    if(Quickst.Mode != WorkMode.AllowAll && blackList.Contains(name)) {
+                        logitem = logitem with { type = LogType.BlockedByBlackList };
+                    } else {
+                        if (whiteList.Contains(name)) {
+                            logitem = logitem with { type = LogType.AllowedByWhiteList };
+                        } else {
+                            if(Quickst.Mode == WorkMode.OnlyWhileList) {
+                                logitem = logitem with { type = LogType.Blocked };
+                            } else {
+                                logitem = logitem with { type = LogType.Allowed };
+                            }
                         }
                     }
 
-                    if (logitem.type != LogType.Allowed) {
+                    //if (Quickst.Mode == WorkMode.AllowAll) {
+                    //    logitem = logitem with { type = LogType.Allowed };
+                    //} else if (Quickst.Mode == WorkMode.OnlyWhileList) {
+                    //    if (whiteList.Contains(name)) {
+                    //        logitem = logitem with { type = LogType.AllowedByWhiteList };
+                    //    }
+                    //} else if (Quickst.Mode == WorkMode.AllExceptBlackList) {
+                    //    if (!blackList.Contains(name)) {
+                    //        logitem = logitem with { type = LogType.BlockedByBlackList };
+                    //    }
+                    //}
+
+                    if (logitem.type != LogType.Allowed && logitem.type != LogType.AllowedByWhiteList) {
                         req.Questions.RemoveAt(i);
                         wasRemoved = true;
                     }
@@ -122,10 +135,11 @@ namespace AndromedaDnsFirewall.main
                     } else {
                         logLst.AddToFront(logitem);
                     }
+                    logChangeId++;
 
                     Log.Info($"New log entry: {logitem}");
 
-                    while (logLst.Count > 1000) {
+                    while (logLst.Count > 500) {
                         logLst.RemoveFromBack();
                     }
                 }
@@ -162,6 +176,16 @@ namespace AndromedaDnsFirewall.main
 
         public void Init()
         {
+            NameRulesStore.Inst.Init();
+
+            foreach(var elem in NameRulesStore.Inst.Load()) {
+                if (elem.block) {
+                    blackList.Add(elem.name);
+                } else {
+                    whiteList.Add(elem.name);
+                }
+            }
+
             server.ProcessRequest = ProcessRequest;
             server.Start();
         }

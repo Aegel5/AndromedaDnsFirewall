@@ -27,5 +27,6 @@ namespace AndromedaDnsFirewall.main
             "https://8.8.4.4/dns-query",
             "https://8.8.8.8/dns-query",
         };
+        public string ListenAddress = "127.0.0.1:53";
     }
 }

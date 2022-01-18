@@ -5,28 +5,41 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AndromedaDnsFirewall"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded"
+        Title="AndromedaDnsFirewall" Height="450" Width="800" Loaded="Window_Loaded" Closing="Window_Closing"
                 >
     <Window.Resources>
         <ContextMenu x:Key="MyContextMenu">
             <MenuItem Header="Заблокировать" Click="MenuItem_Click" />
             <MenuItem Header="Разрешить" Click="MenuItem_Click_1" />
+            <MenuItem Header="Удалить" Click="MenuItem_Click_2" />
         </ContextMenu>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"></RowDefinition>
+            <RowDefinition Height="22"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <StackPanel Name="modePanel" Orientation="Horizontal" VerticalAlignment="Center">
+
+        <Menu Height="22" VerticalAlignment="Top">
+            <MenuItem Header="Файл">
+                <MenuItem Header="Выход" Click="MenuExit_Click"/>
+            </MenuItem>
+            <MenuItem Header="Настройки">
+                <MenuItem Header="Автозагрузка: EMPTY" Click="menuAutostart_Click" IsCheckable="true" Name="menuAutostart"/>
+            </MenuItem>
+        </Menu>
+
+        <StackPanel Name="modePanel" Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="1">
+        
+        <StackPanel Orientation="Horizontal" Grid.Row="2">
             <Button Margin="4" Click="Button_Click_1">Log</Button>
             <Button Margin="4" Click="Button_Click_2">While list</Button>
             <Button Margin="4" Click="Button_Click_3">Black list</Button>
         </StackPanel>
-        <ListBox Name="lstLog" Grid.Row="2">
+        <ListBox Name="lstLog" Grid.Row="3">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="ContextMenu" Value="{StaticResource MyContextMenu}">

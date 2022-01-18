@@ -1,4 +1,5 @@
-﻿using AndromedaDnsFirewall.Utils;
+﻿using AndromedaDnsFirewall.main;
+using AndromedaDnsFirewall.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,9 +21,7 @@ namespace AndromedaDnsFirewall.dns_server
 
         async public void Start()
         {
-
-            var endPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 53);
-            listener = new UdpClient(endPoint);
+            listener = new UdpClient(IPEndPoint.Parse(Config.Inst.ListenAddress));
             answener = new UdpClient();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -32,7 +31,7 @@ namespace AndromedaDnsFirewall.dns_server
             }
             //listener.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-            while (true)
+            while (!GlobalData.QuitPending)
             {
                 try
                 {
