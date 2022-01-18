@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall.main
 {
+
+
     class Config
     {
         public static Config Inst { get; private set; }
@@ -20,13 +22,16 @@ namespace AndromedaDnsFirewall.main
                 new JsonSerializerOptions { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip});
         }
 
-        public List<string> Servers = new()
-        {
-            "https://1.0.0.1/dns-query",
-            "https://1.1.1.1/dns-query",
-            "https://8.8.4.4/dns-query",
-            "https://8.8.8.8/dns-query",
-        };
-        public string ListenAddress = "127.0.0.1:53";
+        enum BlockListType {
+            RawString = 0,
+            //WildString = 1,
+            //RegularString = 2
+        }
+
+        record PublicBlockList(string url, double updateHour, BlockListType type);
+
+        List<PublicBlockList> PublicBlockLists { get; set; } = new();
+        public List<string> Servers { get; set; }
+        public string ListenAddress { get; set; } = "127.0.0.1:53";
     }
 }

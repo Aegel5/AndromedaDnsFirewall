@@ -56,6 +56,8 @@ namespace AndromedaDnsFirewall
             InitAutoStartMenu();
 
             AutoUpdater();
+
+            UpdateTitle();
         }
         long curUpdateForLog = 0;
         async void AutoUpdater() {
@@ -70,6 +72,13 @@ namespace AndromedaDnsFirewall
                 }
 
                 curUpdateForLog = holder.logChangeId;
+            }
+        }
+
+        async void UpdateTitle() {
+            while (!GlobalData.QuitPending) {
+                await Task.Delay(30.sec());
+                Title = $"AndromedaDnsFirewall ResolveAvrTime={(int)holder.resolver.Avr}, ResolveErrors={holder.resolver.cntErr}";
             }
         }
 

@@ -20,9 +20,11 @@ namespace AndromedaDnsFirewall.main
         //int next;
     }
 
-    record LogItem (LogType type, DnsElem elem)
+    record LogItem 
     {
-        public int count { get; init; } = 1;
+        public LogType type;
+        public DnsElem elem;
+        public int count  = 1;
 
     }
 
@@ -62,7 +64,7 @@ namespace AndromedaDnsFirewall.main
         public HashSet<string> whiteList = new();
         public HashSet<string> blackList = new();
 
-        DnsResolver resolver = new();
+        internal DnsResolver resolver { get; private set; } = new();
         DnsServer server = new();
 
         public long logChangeId { get; private set; }
@@ -91,18 +93,18 @@ namespace AndromedaDnsFirewall.main
                     var name = quest.Name.ToString();
                     var dnsElem = new DnsElem(quest.Type, quest.Class, name);
 
-                    logitem = new LogItem(LogType.Blocked, dnsElem);
+                    logitem = new LogItem { type = LogType.Blocked, elem = dnsElem };
 
                     if(Quickst.Mode != WorkMode.AllowAll && blackList.Contains(name)) {
-                        logitem = logitem with { type = LogType.BlockedByBlackList };
+                        logitem.type = LogType.BlockedByBlackList ;
                     } else {
                         if (whiteList.Contains(name)) {
-                            logitem = logitem with { type = LogType.AllowedByWhiteList };
+                            logitem.type  = LogType.AllowedByWhiteList ;
                         } else {
                             if(Quickst.Mode == WorkMode.OnlyWhileList) {
-                                logitem = logitem with { type = LogType.Blocked };
+                                logitem.type = LogType.Blocked ;
                             } else {
-                                logitem = logitem with { type = LogType.Allowed };
+                                logitem.type = LogType.Allowed ;
                             }
                         }
                     }
@@ -127,8 +129,8 @@ namespace AndromedaDnsFirewall.main
                     if (logLst.Any()) {
                         var first = logLst[0];
                         if (first with { count = 1 } == logitem) {
-                            logitem = logitem with { count = first.count + 1 };
-                            logLst[0] = logitem;
+                            first.count += 1;
+                            logitem = first;
                         } else {
                             logLst.AddToFront(logitem);
                         }
@@ -161,7 +163,7 @@ namespace AndromedaDnsFirewall.main
             } catch (Exception ex) {
                 Log.Err(ex);
                 if (logitem != null) {
-                    logitem = logitem with { type = LogType.Error };
+                    logitem.type = LogType.Error ;
                 }
             } finally {
                 if (dnsItem.answ == null) {

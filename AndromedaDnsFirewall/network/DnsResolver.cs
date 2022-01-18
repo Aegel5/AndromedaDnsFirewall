@@ -3,6 +3,7 @@ using AndromedaDnsFirewall.Utils;
 using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -54,6 +55,11 @@ namespace AndromedaDnsFirewall.dns_server
 
         HttpClient httpClient;
 
+        long cntReq;
+        double allDur;
+        public long cntErr { get; private set; }
+
+        public double Avr => cntReq == 0 ? 0 : allDur / cntReq;
 
 
         public DnsResolver()
@@ -62,16 +68,23 @@ namespace AndromedaDnsFirewall.dns_server
             srvLst = Config.Inst.Servers.Select(x => new ServerRec() { url = x }).ToList();
         }
 
-        async Task<byte[]> resolveInt(ServerRec server, byte[] req)
-        {
-            var msg = new HttpRequestMessage(new HttpMethod("POST"), server.url);
-            msg.Content = new ByteArrayContent(req);
-            msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/dns-message");
-            using var resp = await httpClient.SendAsync(msg);
-            resp.EnsureSuccessStatusCode();
-            using var cont = resp.Content;
-            var res = await cont.ReadAsByteArrayAsync();
-            return res;
+        async Task<byte[]> resolveInt(ServerRec server, byte[] req) {
+            var timer = Stopwatch.StartNew();
+            try {
+                var msg = new HttpRequestMessage(new HttpMethod("POST"), server.url);
+                msg.Content = new ByteArrayContent(req);
+                msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/dns-message");
+                using var resp = await httpClient.SendAsync(msg);
+                resp.EnsureSuccessStatusCode();
+                using var cont = resp.Content;
+                var res = await cont.ReadAsByteArrayAsync();
+                cntReq++;
+                allDur += timer.ElapsedMilliseconds;
+                return res; 
+            } catch  {
+                cntErr++;
+                throw;
+            }
         }
 
         record ServerRec
