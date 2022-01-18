@@ -120,7 +120,7 @@ namespace AndromedaDnsFirewall.Utils
 
         static void LogBase(string file, string info)
         {
-            if (!Config.LogEnable)
+            if (!Quickst.Inst.LogEnable)
                 return;
             GetWrap(file).PrintLine(info);
         }

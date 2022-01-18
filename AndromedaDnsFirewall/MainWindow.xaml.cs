@@ -1,4 +1,5 @@
 ﻿using AndromedaDnsFirewall.main;
+using AndromedaDnsFirewall.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace AndromedaDnsFirewall
                 btn.GroupName = "1";
                 btn.Margin = new Thickness(4);
 
-                if(val == holder.storage.mode)
+                if(val == Quickst.Inst.mode)
                 {
                     btn.IsChecked = true;
                 }
@@ -44,14 +45,19 @@ namespace AndromedaDnsFirewall
         private void Btn_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as RadioButton;
-            holder.storage.mode = (WorkMode)btn.Content;
+            var cur = (WorkMode)btn.Content;
+            if (Quickst.Inst.mode != cur)
+            {
+                Quickst.Inst.mode = cur;
+                Quickst.Save(); // int this thread because it quick
+            }
         }
 
-        MainHolder holder = new();
+        internal MainHolder holder { get; private set; } = new();
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            holder.Init();
+            Log.Info("Program loaded");
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)

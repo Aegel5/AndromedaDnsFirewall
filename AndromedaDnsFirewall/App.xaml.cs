@@ -1,4 +1,5 @@
-﻿using AndromedaDnsFirewall.Utils;
+﻿using AndromedaDnsFirewall.main;
+using AndromedaDnsFirewall.Utils;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -24,7 +25,11 @@ namespace AndromedaDnsFirewall
                 e.Handled = true;
             };
 
+            Quickst.Load();
+            Config.Load();
+
             MainWindow mainWindow = new MainWindow();
+            mainWindow.holder.Init();
             mainWindow.Show();
 
         }

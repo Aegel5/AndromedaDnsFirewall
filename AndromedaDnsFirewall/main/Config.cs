@@ -1,23 +1,26 @@
-﻿using System;
+﻿using AndromedaDnsFirewall.Utils;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall.main
 {
-    internal static class Config
+    class Config
     {
-        public static void Load()
+        public static Config Inst { get; private set; }
+        static readonly string path = $"{ProgramUtils.BinFolder}/config.json";
+        static public void Load()
         {
-
+            var cont = File.ReadAllText(path); // blocks this thread!
+            Inst = JsonSerializer.Deserialize<Config>(cont, 
+                new JsonSerializerOptions { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip});
         }
 
-        public static bool UseCache = false;
-
-        public static bool LogEnable = true;
-
-        public static List<string> Servers = new()
+        public List<string> Servers = new()
         {
             "https://1.0.0.1/dns-query",
             "https://1.1.1.1/dns-query",

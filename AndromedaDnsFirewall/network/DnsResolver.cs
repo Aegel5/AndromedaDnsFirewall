@@ -59,12 +59,12 @@ namespace AndromedaDnsFirewall.dns_server
         public DnsResolver()
         {
             httpClient = new() { Timeout = 5.sec() };
+            srvLst = Config.Inst.Servers.Select(x => new ServerRec() { url = x }).ToList();
         }
 
-        async public Task<byte[]> resolveInt(string server, byte[] req)
+        async Task<byte[]> resolveInt(ServerRec server, byte[] req)
         {
-            var url = $"{server}";
-            var msg = new HttpRequestMessage(new HttpMethod("POST"), url);
+            var msg = new HttpRequestMessage(new HttpMethod("POST"), server.url);
             msg.Content = new ByteArrayContent(req);
             msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/dns-message");
             using var resp = await httpClient.SendAsync(msg);
@@ -74,16 +74,24 @@ namespace AndromedaDnsFirewall.dns_server
             return res;
         }
 
+        record ServerRec
+        {
+            public string url;
+            public int cntErr;
+        }
+
+        List<ServerRec> srvLst;
+
 
         int nextServ = 0;
-        string NextServ
+        ServerRec NextServ
         {
             get
             {
                 nextServ++;
-                if (nextServ >= Config.Servers.Count)
+                if (nextServ >= srvLst.Count)
                     nextServ = 0;
-                return Config.Servers[nextServ];
+                return srvLst[nextServ];
             }
         }
 
@@ -91,8 +99,6 @@ namespace AndromedaDnsFirewall.dns_server
         {
             return await resolveInt(NextServ, query);
         }
-
-
 
         async public Task<LazyMessage> Resolve(LazyMessage msg)
         {

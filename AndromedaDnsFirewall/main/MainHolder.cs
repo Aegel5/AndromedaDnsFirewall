@@ -34,10 +34,10 @@ namespace AndromedaDnsFirewall.main
 
     enum WorkMode
     {
-        OnlyWhileList,
-        AllExceptBlackList,
-        AllowAll,
-        SimpleBypass
+        OnlyWhileList = 0,
+        AllExceptBlackList = 1,
+        AllowAll = 2
+        //AllowAllWitoutLogs
 
     }
 
@@ -53,7 +53,7 @@ namespace AndromedaDnsFirewall.main
     // serialized to file
     class Storage
     {
-        public WorkMode mode = WorkMode.AllExceptBlackList;
+
 
         public HashSet<string> whiteList = new();
         public HashSet<string> blackList = new();
@@ -78,8 +78,7 @@ namespace AndromedaDnsFirewall.main
 
             try
             {
-
-                if (storage.mode == WorkMode.SimpleBypass)
+                if (!Quickst.Inst.LogEnable && !Quickst.Inst.UseCache && Quickst.Inst.mode == WorkMode.AllowAll)
                 {
                     // simple bypass request
                     dnsItem.answ = await resolver.ResolveBypass(dnsItem.req);
@@ -97,18 +96,18 @@ namespace AndromedaDnsFirewall.main
                     var dnsElem = new DnsElem(quest.Type, quest.Class, name);
                     var logitem = new LogItem(LogType.Blocked, dnsElem);
 
-                    if (storage.mode == WorkMode.AllowAll)
+                    if (Quickst.Mode == WorkMode.AllowAll)
                     {
                         logitem = logitem with { type = LogType.Allowed };
                     }
-                    else if (storage.mode == WorkMode.OnlyWhileList)
+                    else if (Quickst.Mode == WorkMode.OnlyWhileList)
                     {
                         if (storage.whiteList.Contains(name))
                         {
                             logitem = logitem with { type = LogType.Allowed };
                         }
                     }
-                    else if (storage.mode == WorkMode.AllExceptBlackList)
+                    else if (Quickst.Mode == WorkMode.AllExceptBlackList)
                     {
                         if (!storage.blackList.Contains(name))
                         {
@@ -173,7 +172,6 @@ namespace AndromedaDnsFirewall.main
 
         public void Init()
         {
-            //resolver.cache = st
             server.ProcessRequest = ProcessRequest;
             server.Start();
 
