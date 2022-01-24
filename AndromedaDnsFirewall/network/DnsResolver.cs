@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -60,9 +61,13 @@ namespace AndromedaDnsFirewall.dns_server
         //HttpClient httpClient;
         public static DnsResolver Inst;
 
+
+
         static DnsResolver(){
             Inst = new();
         }
+
+
 
         public DnsResolver()
         {
@@ -75,10 +80,34 @@ namespace AndromedaDnsFirewall.dns_server
                 srvLst.AddRange(Config.Inst.DnsResolvers_UDP.Select(x => new ServerRec() { url = x, type = ServType.upd }));
             }
 
+            foreach (var elem in srvLst) {
+                if(elem.url == "default_gateway")
+                    elem.url = GetDnsAdresses(true, false)[0].ToString();
+            }
+
             //udpclient.Client.ReceiveTimeout = 3000;
             //udpclient.Client.SendTimeout = 3000;
         }
         HttpClient httpClient = new() { Timeout = 3.sec() };
+
+        public static IPAddress[] GetDnsAdresses(bool ip4Wanted, bool ip6Wanted) {
+            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+            HashSet<IPAddress> dnsAddresses = new HashSet<IPAddress>();
+
+            foreach (NetworkInterface networkInterface in interfaces) {
+                if (networkInterface.OperationalStatus == OperationalStatus.Up) {
+                    IPInterfaceProperties ipProperties = networkInterface.GetIPProperties();
+
+                    foreach (IPAddress forAddress in ipProperties.DnsAddresses) {
+                        if ((ip4Wanted && forAddress.AddressFamily == AddressFamily.InterNetwork) || (ip6Wanted && forAddress.AddressFamily == AddressFamily.InterNetworkV6)) {
+                            dnsAddresses.Add(forAddress);
+                        }
+                    }
+                }
+            }
+
+            return dnsAddresses.ToArray();
+        }
 
         async Task<byte[]> doh(byte[] req, string addr) {
             var msg = new HttpRequestMessage(new HttpMethod("POST"), addr);
@@ -114,6 +143,8 @@ namespace AndromedaDnsFirewall.dns_server
         //    }
 
         //}
+
+
 
         async Task<byte[]> udp(byte[] req, string addr) {
             using var cl = new UdpClient();
