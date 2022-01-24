@@ -82,7 +82,7 @@ namespace AndromedaDnsFirewall.dns_server
 
             foreach (var elem in srvLst) {
                 if(elem.url == "default_gateway")
-                    elem.url = GetDnsAdresses(true, false)[0].ToString();
+                    elem.url = GetDefaultGateway().ToString();
             }
 
             //udpclient.Client.ReceiveTimeout = 3000;
@@ -90,23 +90,17 @@ namespace AndromedaDnsFirewall.dns_server
         }
         HttpClient httpClient = new() { Timeout = 3.sec() };
 
-        public static IPAddress[] GetDnsAdresses(bool ip4Wanted, bool ip6Wanted) {
-            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            HashSet<IPAddress> dnsAddresses = new HashSet<IPAddress>();
-
-            foreach (NetworkInterface networkInterface in interfaces) {
-                if (networkInterface.OperationalStatus == OperationalStatus.Up) {
-                    IPInterfaceProperties ipProperties = networkInterface.GetIPProperties();
-
-                    foreach (IPAddress forAddress in ipProperties.DnsAddresses) {
-                        if ((ip4Wanted && forAddress.AddressFamily == AddressFamily.InterNetwork) || (ip6Wanted && forAddress.AddressFamily == AddressFamily.InterNetworkV6)) {
-                            dnsAddresses.Add(forAddress);
-                        }
-                    }
-                }
-            }
-
-            return dnsAddresses.ToArray();
+        public static IPAddress GetDefaultGateway() {
+            return NetworkInterface
+                .GetAllNetworkInterfaces()
+                .Where(n => n.OperationalStatus == OperationalStatus.Up)
+                .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                .SelectMany(n => n.GetIPProperties()?.GatewayAddresses)
+                .Select(g => g?.Address)
+                .Where(a => a != null)
+                 //.Where(a => a.AddressFamily == AddressFamily.InterNetwork)
+                 .Where(a => Array.FindIndex(a.GetAddressBytes(), b => b != 0) >= 0)
+                .FirstOrDefault();
         }
 
         async Task<byte[]> doh(byte[] req, string addr) {
