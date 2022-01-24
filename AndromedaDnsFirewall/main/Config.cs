@@ -30,7 +30,10 @@ namespace AndromedaDnsFirewall.main
         }
 
         public List<PublicBlockListRec> PublicBlockLists { get; set; } = new();
-        public List<string> DnsResolvers { get; set; }
+        public bool useServers_DOH { get; set; }
+        public List<string> DnsResolvers_DOH { get; set; }
+        public bool useServers_UDP { get; set; }
+        public List<string> DnsResolvers_UDP { get; set; }
         public string ServerAddress { get; set; } = "127.0.0.1:53";
 
         public bool DebugLog { get; set; } = false;

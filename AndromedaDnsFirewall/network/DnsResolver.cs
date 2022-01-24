@@ -2,6 +2,7 @@
 using AndromedaDnsFirewall.network;
 using AndromedaDnsFirewall.Utils;
 using Makaretu.Dns;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -66,21 +67,76 @@ namespace AndromedaDnsFirewall.dns_server
         public DnsResolver()
         {
             //httpClient = new() { Timeout = 5.sec() };
-            srvLst = Config.Inst.DnsResolvers.Select(x => new ServerRec() { url = x }).ToList();
+            if (Config.Inst.useServers_DOH) {
+                srvLst.AddRange(Config.Inst.DnsResolvers_DOH.Select(x => new ServerRec() { url = x, type = ServType.doh }));
+            }
+
+            if (Config.Inst.useServers_UDP) {
+                srvLst.AddRange(Config.Inst.DnsResolvers_UDP.Select(x => new ServerRec() { url = x, type = ServType.upd }));
+            }
+
+            //udpclient.Client.ReceiveTimeout = 3000;
+            //udpclient.Client.SendTimeout = 3000;
         }
         HttpClient httpClient = new() { Timeout = 3.sec() };
+
+        async Task<byte[]> doh(byte[] req, string addr) {
+            var msg = new HttpRequestMessage(new HttpMethod("POST"), addr);
+            msg.Content = new ByteArrayContent(req);
+            msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/dns-message");
+            //using var timeout = new CancellationTokenSource(3.sec());
+            using var resp = await httpClient.SendAsync(msg);
+            resp.EnsureSuccessStatusCode();
+            using var cont = resp.Content;
+            var res = await cont.ReadAsByteArrayAsync();
+            return res;
+        }
+
+        //UdpClient udpclient = new();
+        //AWaitVariable2 cv = new();
+        //UdpReceiveResult lastres;
+
+        //async Task<byte[]> waitudp(IPEndPoint addr) {
+
+        //    var timeout = new CancellationTokenSource(3.sec());
+        //    var task = udpclient.ReceiveAsync();
+        //    while (true) {
+        //        var res = await Task.WhenAny(task, cv.Wait(timeout.Token));
+        //        if (res == task) {
+        //            await task;
+        //            lastres = task.Result;
+        //        }
+        //        if (lastres.RemoteEndPoint.Address == addr.Address) {
+        //            return lastres.Buffer;
+        //        }
+        //        if (timeout.IsCancellationRequested)
+        //            throw new Exception("timeout udp");
+        //    }
+
+        //}
+
+        async Task<byte[]> udp(byte[] req, string addr) {
+            using var cl = new UdpClient();
+            var rem = new IPEndPoint(IPAddress.Parse(addr), 53);
+            using var timeout = new CancellationTokenSource(3.sec());
+            await cl.SendAsync(req, rem, timeout.Token);
+            var result = await cl.ReceiveAsync(timeout.Token);
+            return result.Buffer;
+        }
 
         async Task<byte[]> resolveInt(ServerRec server, byte[] req) {
             var timer = Stopwatch.StartNew();
             try {
-                var msg = new HttpRequestMessage(new HttpMethod("POST"), server.url);
-                msg.Content = new ByteArrayContent(req);
-                msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/dns-message");
-                //using var timeout = new CancellationTokenSource(3.sec());
-                using var resp = await httpClient.SendAsync(msg);
-                resp.EnsureSuccessStatusCode();
-                using var cont = resp.Content;
-                var res = await cont.ReadAsByteArrayAsync();
+
+                byte[] res = null;
+                if(server.type == ServType.doh) {
+                    res = await doh(req, server.url);
+                }else if(server.type == ServType.upd) {
+                    res = await udp(req, server.url);
+                } else {
+                    throw new Exception("unknown serv type");
+                }
+
                 server.cntReq++;
                 server.allDur += timer.ElapsedMilliseconds;
                 return res; 
@@ -90,19 +146,25 @@ namespace AndromedaDnsFirewall.dns_server
             }
         }
 
+        enum ServType {
+            upd,
+            doh
+        }
+
         record ServerRec
         {
             public string url;
             public long cntReq;
             public double allDur;
             public long cntErr;
+            public ServType type;
 
-            public double Avr => cntReq == 0 ? 0 : allDur / cntReq;
+            public double Avr => cntReq == 0 ? 0 : Math.Round(allDur / cntReq);
         }
 
         public string ServStats => string.Join("\n", srvLst.OrderBy(x => x.Avr).Select(x => $"{x.url}: cnt={x.cntReq}, avr={x.Avr}, err={x.cntErr}"));
 
-        List<ServerRec> srvLst;
+        List<ServerRec> srvLst = new();
 
 
         int nextServ = 0;
@@ -124,22 +186,11 @@ namespace AndromedaDnsFirewall.dns_server
 
         async public Task<LazyMessage> Resolve(LazyMessage msg)
         {
-            //return await ResolveNoCrypt(msg); // for test
             var res = await resolveInt(NextServ, msg.BuffGet);
             return new() { buf = res };
         }
 
-        async public Task<LazyMessage> ResolveNoCrypt(LazyMessage msg) {
 
-            var rem = new IPEndPoint(IPAddress.Parse("1.1.1.3"), 53);
-            var sender = new UdpClient(rem.AddressFamily);
-            await sender.SendAsync(msg.MsgGet.ToByteArray(), rem);
-            var result = await sender.ReceiveAsync();
-            var data = result.Buffer;
-
-            return new() { buf = data }; ;
-
-        }
 
         Random rnd = new();
 

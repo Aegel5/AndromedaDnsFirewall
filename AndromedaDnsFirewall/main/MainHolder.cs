@@ -165,9 +165,9 @@ namespace AndromedaDnsFirewall.main
                     dnsItem.answ = lazyres.BuffGet;
                 } else {
                     Message msg = new() { Id = reqId };
-                    //msg.Status = MessageStatus.Refused; // nobody check this :(
+                    msg.Status = MessageStatus.Refused; // nobody check this :(
                     //msg.Answers.Add(new CNAMERecord() { Name = fortest.Name, Target = fortest.Name });
-                    msg.Answers.Add(new ARecord() { Name = fortest.Name, Address = IPAddress.Parse("127.0.0.1") });
+                    //msg.Answers.Add(new ARecord() { Name = fortest.Name, Address = IPAddress.Parse("127.0.0.1"), TTL=7.sec() }); // todo
                     dnsItem.answ = msg.ToByteArray();
                 }
 

@@ -17,12 +17,13 @@ namespace AndromedaDnsFirewall.dns_server
     internal class DnsServer
     {
         UdpClient listener;
-        UdpClient answener;
+        //UdpClient answener;
 
         async public void Start()
         {
             listener = new UdpClient(IPEndPoint.Parse(Config.Inst.ServerAddress));
-            answener = new UdpClient();
+            //listener.Client.SendTimeout = 3000;
+            //answener = new UdpClient();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -59,7 +60,7 @@ namespace AndromedaDnsFirewall.dns_server
 
         async public void CompleteRequest(ServerItem req)
         {
-            await answener.SendAsync(req.answ, req.endPoint);
+            await listener.SendAsync(req.answ, req.endPoint);
         }
     }
     class ServerItem
