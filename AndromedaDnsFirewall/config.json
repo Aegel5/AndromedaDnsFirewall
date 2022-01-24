@@ -10,9 +10,10 @@
   "PublicBlockLists": [
     {
       "url": "https://github.com/notracking/hosts-blocklists/raw/master/dnscrypt-proxy/dnscrypt-proxy.blacklist.txt",
-      "updateHour": 10,
-      "type":  0
+      "updateHour": 5,
+      "type": 0
     }
-  ]
+  ],
+  "DebugLog":  false
 
 }

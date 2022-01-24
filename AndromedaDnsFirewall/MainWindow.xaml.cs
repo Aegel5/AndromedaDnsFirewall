@@ -148,15 +148,18 @@ namespace AndromedaDnsFirewall
 
         enum CurLst {
             Log,
-            MyRules,
+            AllowList,
+            blockList,
             PublicList
         }
         CurLst curlst = CurLst.Log;
 
         void FillList2() {
-            if(curlst == CurLst.MyRules) {
-                FillList(holder.myRules);
-            }else if(curlst == CurLst.PublicList) {
+            if (curlst == CurLst.blockList) {
+                FillList(holder.myRules.Where(x => x.Value == RuleBlockType.Block).Select(x => x.Key));
+            } else if (curlst == CurLst.AllowList) {
+                FillList(holder.myRules.Where(x => x.Value == RuleBlockType.Allow).Select(x => x.Key));
+            } else if (curlst == CurLst.PublicList) {
                 FillList(PublicBlockListHolder.Inst.ListForGui());
             } else {
                 FillList(holder.logLst);
@@ -165,7 +168,7 @@ namespace AndromedaDnsFirewall
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            curlst = CurLst.MyRules;
+            curlst = CurLst.AllowList;
             FillList2();
         }
 
@@ -197,9 +200,9 @@ namespace AndromedaDnsFirewall
                     str = log.elem.data;
                 }
             }
-            if(item is KeyValuePair<string, RuleBlockType>) {
-                str = ((KeyValuePair<string, RuleBlockType>)(item)).Key;
-            }
+            //if(item is KeyValuePair<string, RuleBlockType>) {
+            //    str = ((KeyValuePair<string, RuleBlockType>)(item)).Key;
+            //}
             if (str == null)
                 return;
 
@@ -216,7 +219,7 @@ namespace AndromedaDnsFirewall
                 holder.myRules[str] = RuleBlockType.Allow;
             }
 
-            if(curlst == CurLst.MyRules) {
+            if(curlst == CurLst.AllowList || curlst == CurLst.blockList) {
                 FillList2();
             }
 
@@ -256,13 +259,8 @@ namespace AndromedaDnsFirewall
             menuAutostart.Header = name;
         }
 
-        private void menuAutostart_Click(object sender, RoutedEventArgs e) {
-            var add = menuAutostart.IsChecked;
-            if (add) {
-                AutostartCheck.SetCurAutostart();
-            } else {
-                AutostartCheck.RemoveAutostart();
-            }
+        async private void menuAutostart_Click(object sender, RoutedEventArgs e) {
+            await AutostartCheck.SwapCheck();
             InitAutoStartMenu();
         }
 
@@ -272,6 +270,11 @@ namespace AndromedaDnsFirewall
 
         private void MenuItem_Click_3(object sender, RoutedEventArgs e) {
             MessageBox.Show(DnsResolver.Inst.ServStats);
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e) {
+            curlst = CurLst.blockList;
+            FillList2();
         }
     }
 }

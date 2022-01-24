@@ -99,7 +99,7 @@ namespace AndromedaDnsFirewall.dns_server
             public double Avr => cntReq == 0 ? 0 : allDur / cntReq;
         }
 
-        public string ServStats => string.Join("\n", srvLst.Select(x => $"{x.url}: cnt={x.cntReq}, avr={x.Avr}, err={x.cntErr}"));
+        public string ServStats => string.Join("\n", srvLst.OrderBy(x => x.Avr).Select(x => $"{x.url}: cnt={x.cntReq}, avr={x.Avr}, err={x.cntErr}"));
 
         List<ServerRec> srvLst;
 
@@ -139,6 +139,9 @@ namespace AndromedaDnsFirewall.dns_server
             parsed.Read(res);
             
             var take = parsed.Answers.Where(x => x.Type == DnsType.A).Select(x => x as AddressRecord).ToArray();
+            if(take.Length == 0) {
+                throw new Exception($"no anser for request {name}");
+            }
             return take[rnd.Next(take.Length)].Address;
         }
 
