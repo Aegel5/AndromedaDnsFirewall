@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -123,8 +124,21 @@ namespace AndromedaDnsFirewall.dns_server
 
         async public Task<LazyMessage> Resolve(LazyMessage msg)
         {
+            //return await ResolveNoCrypt(msg); // for test
             var res = await resolveInt(NextServ, msg.BuffGet);
             return new() { buf = res };
+        }
+
+        async public Task<LazyMessage> ResolveNoCrypt(LazyMessage msg) {
+
+            var rem = new IPEndPoint(IPAddress.Parse("1.1.1.3"), 53);
+            var sender = new UdpClient(rem.AddressFamily);
+            await sender.SendAsync(msg.MsgGet.ToByteArray(), rem);
+            var result = await sender.ReceiveAsync();
+            var data = result.Buffer;
+
+            return new() { buf = data }; ;
+
         }
 
         Random rnd = new();

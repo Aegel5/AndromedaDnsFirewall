@@ -97,8 +97,12 @@ namespace AndromedaDnsFirewall.main
                 req.Read(dnsItem.req);
                 reqId = req.Id;
                 bool wasRemoved = false;
+
+                //Question fortest = null;
+
                 for (int i = req.Questions.Count - 1; i >= 0; i--) {
                     var quest = req.Questions[i];
+                    //fortest = quest;
                     var name = quest.Name.ToString();
                     var dnsElem = new DnsElem(quest.Type, quest.Class, name);
 
@@ -157,11 +161,15 @@ namespace AndromedaDnsFirewall.main
 
 
                 if (req.Questions.Any()) {
-                    dnsItem.answ = (await DnsResolver.Inst.Resolve(lazy)).BuffGet;
+                    var lazyres = await DnsResolver.Inst.Resolve(lazy);
+                    dnsItem.answ = lazyres.BuffGet;
                 } else {
-                    Message msg = new() { Id = reqId, Status = MessageStatus.Refused };
+                    Message msg = new() { Id = reqId };
+                    msg.Status = MessageStatus.Refused; // nobody check this :(
+                    //msg.Answers.Add(new ARecord() { Name = fortest.Name, Address = IPAddress.Parse("0.0.0.0") });
                     dnsItem.answ = msg.ToByteArray();
                 }
+
 
             } catch (Exception ex) {
                 Log.Err(ex);
