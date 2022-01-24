@@ -10,6 +10,13 @@ using System.Threading.Tasks;
 namespace AndromedaDnsFirewall.main
 {
 
+    internal enum BlockListType {
+        RawString = 0,
+        //WildString = 1,
+        //RegularString = 2
+    }
+
+    record PublicBlockListRec(string url, double updateHour, BlockListType type);
 
     class Config
     {
@@ -22,16 +29,8 @@ namespace AndromedaDnsFirewall.main
                 new JsonSerializerOptions { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip});
         }
 
-        enum BlockListType {
-            RawString = 0,
-            //WildString = 1,
-            //RegularString = 2
-        }
-
-        record PublicBlockList(string url, double updateHour, BlockListType type);
-
-        List<PublicBlockList> PublicBlockLists { get; set; } = new();
-        public List<string> Servers { get; set; }
-        public string ListenAddress { get; set; } = "127.0.0.1:53";
+        public List<PublicBlockListRec> PublicBlockLists { get; set; } = new();
+        public List<string> DnsResolvers { get; set; }
+        public string ServerAddress { get; set; } = "127.0.0.1:53";
     }
 }

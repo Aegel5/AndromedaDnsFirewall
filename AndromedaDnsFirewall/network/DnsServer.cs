@@ -21,7 +21,7 @@ namespace AndromedaDnsFirewall.dns_server
 
         async public void Start()
         {
-            listener = new UdpClient(IPEndPoint.Parse(Config.Inst.ListenAddress));
+            listener = new UdpClient(IPEndPoint.Parse(Config.Inst.ServerAddress));
             answener = new UdpClient();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

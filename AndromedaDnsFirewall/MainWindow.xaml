@@ -9,9 +9,9 @@
                 >
     <Window.Resources>
         <ContextMenu x:Key="MyContextMenu">
-            <MenuItem Header="Заблокировать" Click="MenuItem_Click" />
-            <MenuItem Header="Разрешить" Click="MenuItem_Click_1" />
-            <MenuItem Header="Удалить" Click="MenuItem_Click_2" />
+            <MenuItem Header="My rules: Block" Click="MenuItem_Click" />
+            <MenuItem Header="My rules: Allow" Click="MenuItem_Click_1" />
+            <MenuItem Header="My rules: Delete" Click="MenuItem_Click_2" />
         </ContextMenu>
     </Window.Resources>
     <Grid>
@@ -23,12 +23,15 @@
         </Grid.RowDefinitions>
 
         <Menu Height="22" VerticalAlignment="Top">
-            <MenuItem Header="Файл">
-                <MenuItem Header="Выход" Click="MenuExit_Click"/>
+            <MenuItem Header="File">
+                <MenuItem Header="Exit" Click="MenuExit_Click"/>
             </MenuItem>
-            <MenuItem Header="Настройки">
-                <MenuItem Header="Автозагрузка: EMPTY" Click="menuAutostart_Click" IsCheckable="true" Name="menuAutostart"/>
+            <MenuItem Header="Settings">
+                <MenuItem Header="Autostart: EMPTY" Click="menuAutostart_Click" IsCheckable="true" Name="menuAutostart"/>
             </MenuItem>
+            <MenuItem Header="Tools">
+                <MenuItem Header="Server statistics" Click="MenuItem_Click_3" />
+            </MenuItem>            
         </Menu>
 
         <StackPanel Name="modePanel" Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -36,8 +39,8 @@
         
         <StackPanel Orientation="Horizontal" Grid.Row="2">
             <Button Margin="4" Click="Button_Click_1">Log</Button>
-            <Button Margin="4" Click="Button_Click_2">While list</Button>
-            <Button Margin="4" Click="Button_Click_3">Black list</Button>
+            <Button Margin="4" Click="Button_Click_2">My rules</Button>
+            <Button Margin="4" Click="Button_Click_3">Public block list</Button>
         </StackPanel>
         <ListBox Name="lstLog" Grid.Row="3">
             <ListBox.ItemContainerStyle>

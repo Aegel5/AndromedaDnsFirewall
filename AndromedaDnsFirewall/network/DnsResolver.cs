@@ -1,13 +1,16 @@
 ﻿using AndromedaDnsFirewall.main;
+using AndromedaDnsFirewall.network;
 using AndromedaDnsFirewall.Utils;
 using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall.dns_server
@@ -50,23 +53,21 @@ namespace AndromedaDnsFirewall.dns_server
         }
     }
 
-    internal class DnsResolver
-    {
+    internal class DnsResolver {
 
-        HttpClient httpClient;
+        //HttpClient httpClient;
+        public static DnsResolver Inst;
 
-        long cntReq;
-        double allDur;
-        public long cntErr { get; private set; }
-
-        public double Avr => cntReq == 0 ? 0 : allDur / cntReq;
-
+        static DnsResolver(){
+            Inst = new();
+        }
 
         public DnsResolver()
         {
-            httpClient = new() { Timeout = 5.sec() };
-            srvLst = Config.Inst.Servers.Select(x => new ServerRec() { url = x }).ToList();
+            //httpClient = new() { Timeout = 5.sec() };
+            srvLst = Config.Inst.DnsResolvers.Select(x => new ServerRec() { url = x }).ToList();
         }
+        HttpClient httpClient = new() { Timeout = 3.sec() };
 
         async Task<byte[]> resolveInt(ServerRec server, byte[] req) {
             var timer = Stopwatch.StartNew();
@@ -74,15 +75,16 @@ namespace AndromedaDnsFirewall.dns_server
                 var msg = new HttpRequestMessage(new HttpMethod("POST"), server.url);
                 msg.Content = new ByteArrayContent(req);
                 msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/dns-message");
+                //using var timeout = new CancellationTokenSource(3.sec());
                 using var resp = await httpClient.SendAsync(msg);
                 resp.EnsureSuccessStatusCode();
                 using var cont = resp.Content;
                 var res = await cont.ReadAsByteArrayAsync();
-                cntReq++;
-                allDur += timer.ElapsedMilliseconds;
+                server.cntReq++;
+                server.allDur += timer.ElapsedMilliseconds;
                 return res; 
             } catch  {
-                cntErr++;
+                server.cntErr++;
                 throw;
             }
         }
@@ -90,8 +92,14 @@ namespace AndromedaDnsFirewall.dns_server
         record ServerRec
         {
             public string url;
-            public int cntErr;
+            public long cntReq;
+            public double allDur;
+            public long cntErr;
+
+            public double Avr => cntReq == 0 ? 0 : allDur / cntReq;
         }
+
+        public string ServStats => string.Join("\n", srvLst.Select(x => $"{x.url}: cnt={x.cntReq}, avr={x.Avr}, err={x.cntErr}"));
 
         List<ServerRec> srvLst;
 
@@ -117,6 +125,21 @@ namespace AndromedaDnsFirewall.dns_server
         {
             var res = await resolveInt(NextServ, msg.BuffGet);
             return new() { buf = res };
+        }
+
+        Random rnd = new();
+
+        async public Task<IPAddress> Resolve(string name) {
+            Message msg = new();
+            msg.Questions.Add(new Question { Type = DnsType.A, Name = name });
+
+            var res = await resolveInt(NextServ, msg.ToByteArray());
+
+            Message parsed = new();
+            parsed.Read(res);
+            
+            var take = parsed.Answers.Where(x => x.Type == DnsType.A).Select(x => x as AddressRecord).ToArray();
+            return take[rnd.Next(take.Length)].Address;
         }
 
 

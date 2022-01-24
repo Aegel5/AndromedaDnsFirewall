@@ -36,7 +36,7 @@ namespace AndromedaDnsFirewall.main
 
         public bool LogEnable { get; set; } = true;
 
-        public WorkMode mode { get; set; } = WorkMode.AllExceptBlackList;
+        public WorkMode mode { get; set; } = WorkMode.AllExceptBlockList;
 
         static public WorkMode Mode => Inst.mode;
 

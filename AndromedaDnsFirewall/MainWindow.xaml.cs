@@ -1,4 +1,5 @@
-﻿using AndromedaDnsFirewall.main;
+﻿using AndromedaDnsFirewall.dns_server;
+using AndromedaDnsFirewall.main;
 using AndromedaDnsFirewall.Utils;
 using System;
 using System.Collections.Generic;
@@ -57,7 +58,7 @@ namespace AndromedaDnsFirewall
 
             AutoUpdater();
 
-            UpdateTitle();
+            //UpdateTitle();
         }
         long curUpdateForLog = 0;
         async void AutoUpdater() {
@@ -75,12 +76,12 @@ namespace AndromedaDnsFirewall
             }
         }
 
-        async void UpdateTitle() {
-            while (!GlobalData.QuitPending) {
-                await Task.Delay(30.sec());
-                Title = $"AndromedaDnsFirewall ResolveAvrTime={(int)holder.resolver.Avr}, ResolveErrors={holder.resolver.cntErr}";
-            }
-        }
+        //async void UpdateTitle() {
+        //    while (!GlobalData.QuitPending) {
+        //        Title = $"AndromedaDnsFirewall    ResolveAvrTime={(int)holder.resolver.Avr}, ResolveErrors={holder.resolver.cntErr}";
+        //        await Task.Delay(30.sec());
+        //    }
+        //}
 
         void ExitWnd() {
             if (GlobalData.QuitPending) {
@@ -147,16 +148,16 @@ namespace AndromedaDnsFirewall
 
         enum CurLst {
             Log,
-            Wt,
-            Black
+            MyRules,
+            PublicList
         }
         CurLst curlst = CurLst.Log;
 
         void FillList2() {
-            if(curlst == CurLst.Wt) {
-                FillList(holder.whiteList);
-            }else if(curlst == CurLst.Black) {
-                FillList(holder.blackList);
+            if(curlst == CurLst.MyRules) {
+                FillList(holder.myRules);
+            }else if(curlst == CurLst.PublicList) {
+                FillList(PublicBlockListHolder.Inst.ListForGui());
             } else {
                 FillList(holder.logLst);
             }
@@ -164,13 +165,13 @@ namespace AndromedaDnsFirewall
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            curlst = CurLst.Wt;
+            curlst = CurLst.MyRules;
             FillList2();
         }
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
-            curlst = CurLst.Black;
+            curlst = CurLst.PublicList;
             FillList2();
         }
 
@@ -196,26 +197,26 @@ namespace AndromedaDnsFirewall
                     str = log.elem.data;
                 }
             }
+            if(item is KeyValuePair<string, RuleBlockType>) {
+                str = ((KeyValuePair<string, RuleBlockType>)(item)).Key;
+            }
             if (str == null)
                 return;
 
             if(type == AddType.Delete) {
                 NameRulesStore.Inst.Delete(str);
-                holder.whiteList.Remove(str);
-                holder.blackList.Remove(str);
+                holder.myRules.Remove(str);
             } else if(type == AddType.toBlack) { 
                 NameRulesStore.Inst.Update(str, true);
-                holder.blackList.Add(str);
-                holder.whiteList.Remove(str);
+                holder.myRules[str] = RuleBlockType.Block;
             }
             else
             {
                 NameRulesStore.Inst.Update(str, false);
-                holder.blackList.Remove(str);
-                holder.whiteList.Add(str);
+                holder.myRules[str] = RuleBlockType.Allow;
             }
 
-            if(curlst != CurLst.Log) {
+            if(curlst == CurLst.MyRules) {
                 FillList2();
             }
 
@@ -267,6 +268,10 @@ namespace AndromedaDnsFirewall
 
         private void MenuExit_Click(object sender, RoutedEventArgs e) {
             ExitWnd();
+        }
+
+        private void MenuItem_Click_3(object sender, RoutedEventArgs e) {
+            MessageBox.Show(DnsResolver.Inst.ServStats);
         }
     }
 }
