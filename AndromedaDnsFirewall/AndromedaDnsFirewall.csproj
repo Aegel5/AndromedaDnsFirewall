@@ -6,7 +6,12 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
+        <ApplicationIcon>andrm4.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="andrm4.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Dbs.Signed3.Nito.AsyncEx.Coordination" Version="5.0.0" />

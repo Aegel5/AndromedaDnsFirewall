@@ -1,3 +1,3 @@
-﻿non-blocking cache
-иконка
+﻿non-blocking cache.
+http block лист должен логировать.
 

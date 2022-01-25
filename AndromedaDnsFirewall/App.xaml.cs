@@ -36,6 +36,7 @@ namespace AndromedaDnsFirewall
                 MessageBox.Show(msg, e.Exception.Message, MessageBoxButton.OK, MessageBoxImage.Information);
                 Log.Err(e.Exception);
                 e.Handled = true;
+                Shutdown();
             };
 
 
