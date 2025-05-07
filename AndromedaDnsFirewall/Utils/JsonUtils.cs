@@ -8,8 +8,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static System.Text.Json.JsonElement;
 
-namespace AndromedaDnsFirewall.Utils
-{
+namespace AndromedaDnsFirewall;
+
     class JWrite {
         Dictionary<string, object> root = new();
 
@@ -199,4 +199,3 @@ namespace AndromedaDnsFirewall.Utils
             throw new Exception("wrong type for string");
         }
     }
-}

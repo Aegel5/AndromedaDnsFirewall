@@ -1,21 +1,19 @@
-﻿using AndromedaDnsFirewall.main;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AndromedaDnsFirewall {
+namespace AndromedaDnsFirewall; 
 
-    internal static class Log {
-        static Log() {
-        }
+internal static class Log {
+    static Log() {
+    }
 
-        public static void Info(string info) {
-        }
+    public static void Info(string info) {
+    }
 
-        public static void Err(Exception ex) {
-        }
+    public static void Err(Exception ex) {
     }
 }

@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AndromedaDnsFirewall.main
+namespace AndromedaDnsFirewall;
+
+static class GlobalData
 {
-    static class GlobalData
-    {
-        static public bool QuitPending;
-    }
+    static public bool QuitPending;
 }

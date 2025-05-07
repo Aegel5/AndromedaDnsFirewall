@@ -20,6 +20,5 @@
     </PackageReference>
     <PackageReference Include="Makaretu.Dns" Version="2.0.1" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
   </ItemGroup>
 </Project>

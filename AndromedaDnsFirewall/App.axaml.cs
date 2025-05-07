@@ -1,36 +1,30 @@
-﻿using AndromedaDnsFirewall.main;
-using System.Threading;
+﻿using System.Threading;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 
-namespace AndromedaDnsFirewall
-{
-    public partial class App : Application
-    {
-        public override void Initialize()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+namespace AndromedaDnsFirewall;
 
-        public override void OnFrameworkInitializationCompleted()
-        {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-				Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
+public partial class App : Application {
+	public override void Initialize() {
+		AvaloniaXamlLoader.Load(this);
+	}
 
-				Config.Load();
+	public override void OnFrameworkInitializationCompleted() {
+		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
+			Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
 
-				Dispatcher.UIThread.UnhandledException += (a, b) => {
-					b.Handled = true;
-					GuiTools.ShowMessageNoWait(b.Exception.ToString(), "Top Level Exception");
-				};
+			Config.Load();
 
-				desktop.MainWindow = new MainWindow();
-            }
+			Dispatcher.UIThread.UnhandledException += (a, b) => {
+				b.Handled = true;
+				GuiTools.ShowMessageNoWait(b.Exception.ToString(), "Top Level Exception");
+			};
 
-            base.OnFrameworkInitializationCompleted();
-        }
-    }
+			desktop.MainWindow = new MainWindow();
+		}
+
+		base.OnFrameworkInitializationCompleted();
+	}
 }

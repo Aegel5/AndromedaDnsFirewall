@@ -1,6 +1,4 @@
-﻿using AndromedaDnsFirewall.main;
-using AndromedaDnsFirewall.network;
-using AndromedaDnsFirewall.Utils;
+﻿using AndromedaDnsFirewall.network;
 using Makaretu.Dns;
 using Nito.AsyncEx;
 using System;
