@@ -1,0 +1,18 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Width="700"
+        x:Class="AndromedaDnsFirewall.SimpleMessageBox"
+        Title="Window1"
+				SizeToContent="Height">
+	<StackPanel>
+		<TextBox Margin="5" BorderThickness="0" Name="ge_text" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center">fff</TextBox>
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+			<Button Margin="5" Name="ge_ok" HorizontalAlignment="Center" DockPanel.Dock="Bottom">OK</Button>
+			<Button Margin="5" Name="ge_cancel" HorizontalAlignment="Center" DockPanel.Dock="Bottom">Cancel</Button>
+		</StackPanel>
+
+
+	</StackPanel>
+</Window>

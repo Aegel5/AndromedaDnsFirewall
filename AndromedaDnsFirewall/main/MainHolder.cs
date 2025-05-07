@@ -71,7 +71,6 @@ namespace AndromedaDnsFirewall.main
     {
         public StoreCache cache = new();
 
-
         public Dictionary<string, RuleBlockType> myRules = new();
 
         DnsServer server = new();
@@ -87,7 +86,7 @@ namespace AndromedaDnsFirewall.main
 
             try {
 
-                if (!Quickst.Inst.LogEnable && !Quickst.Inst.UseCache && Quickst.Inst.mode == WorkMode.AllowAll) {
+                if (Config.Inst.mode == WorkMode.AllowAll) {
                     // simple bypass request
                     dnsItem.answ = await DnsResolver.Inst.ResolveBypass(dnsItem.req);
                     return;
@@ -111,7 +110,7 @@ namespace AndromedaDnsFirewall.main
                     myRules.TryGetValue(name, out RuleBlockType block);
 
                     LogType calcLogType() {
-                        if (Quickst.Mode == WorkMode.AllowAll)
+                        if (Config.Mode == WorkMode.AllowAll)
                             return LogType.Allowed;
                         if (block == RuleBlockType.Block)
                             return LogType.BlockedByRules;
@@ -121,7 +120,7 @@ namespace AndromedaDnsFirewall.main
                             return LogType.PublicBlockListNotReady;
                         if (PublicBlockListHolder.Inst.IsNeedBlock(name))
                             return LogType.BlockedByPublicList;
-                        if (Quickst.Mode == WorkMode.OnlyWhiteList)
+                        if (Config.Mode == WorkMode.OnlyWhiteList)
                             return LogType.Blocked;
                         return LogType.Allowed;
                     }

@@ -1,70 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AndromedaDnsFirewall.Utils
-{
-    static class ProgramUtils {
-        public static string TypeSession => IsDebug ? "DEBUG" : "RELEASE";
+namespace AndromedaDnsFirewall; 
+public static class ProgramUtils {
+    public static string TypeSession => IsDebug ? "DEBUG" : "RELEASE";
 
-        static string binfolder = null;
-        static string myexe = null;
+    static public bool IsRelease => !IsDebug;
 
-        static public bool IsRelease => !IsDebug;
-
-        static public bool IsDebug {
-            get {
+    static public bool IsDebug {
+        get {
 #if DEBUG
-                return true;
+            return true;
 #else
-                return false;
+            return false;
 #endif
-            }
         }
+    }
 
-        static WindowsPrincipal princ;
+    public static string BinFolder => Path.GetDirectoryName(ExePath);
 
-        static public bool IsElevated {
-            get {
-                if(princ == null) {
-                    princ = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-                }
-                return princ.IsInRole(WindowsBuiltInRole.Administrator);
+    public static string ExePath => Environment.ProcessPath;
+
+    static public string FindOurPath(string name) {
+        var path = BinFolder;
+        while (true) {
+            var cur = Path.Combine(path, name);
+
+            if (File.Exists(cur) || Directory.Exists(cur)) {
+                return cur;
             }
-        }
-        public static string MyExe {
-            get {
-                if (myexe != null)
-                    return myexe;
 
-                var exe = System.Reflection.Assembly.GetExecutingAssembly().Location.Replace("file:///", "");
-                myexe = System.IO.Path.GetFileName(exe);
-                myexe = myexe.Replace(".dll", ".exe");
-                return myexe;
-
-                //var t = System.Reflection.Assembly.GetExecutingAssembly().l
-            }
-        }
-
-        public static string BinFolder {
-            get {
-                if (binfolder != null)
-                    return binfolder;
-
-                var exe = System.Reflection.Assembly.GetExecutingAssembly().Location.Replace("file:///", "");
-                binfolder = System.IO.Path.GetDirectoryName(exe);
-                return binfolder;
-            }
-        }
-
-        public static string ExePath {
-            get {
-                return $"{BinFolder}\\{MyExe}";
+            path = Path.GetDirectoryName(path);
+            if (path == null) {
+                throw new Exception("can't find " + name);
             }
         }
     }
+
+    static bool? is_autostart;
+    static public bool IsAutoStart {
+        get {
+            if (is_autostart.HasValue) return is_autostart.Value;
+            is_autostart = HasArg("/autostart");
+            return is_autostart.Value;
+        }
+    }
+    static public bool HasArg(string cmd_arg) => Environment.GetCommandLineArgs().FirstOrDefault(x => x.Contains(cmd_arg)) != null;
+
+    public static DateTime StartTime { get; private set; } = DateTime.UtcNow;
+
+
 }
