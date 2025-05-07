@@ -1,8 +1,11 @@
 ﻿using AndromedaDnsFirewall.dns_server;
+using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Makaretu.Dns;
 using Nito.Collections;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -25,17 +28,35 @@ record LogItem
     public DnsElem elem;
     public int count  = 1;
 
+	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.FromRgb(100,0,0));
+
+	public IBrush? Background {
+		get {
+			return type switch { 
+				LogType.BlockedByPublicList => Brushes.DarkOrchid, 
+				LogType.BlockedByUserList => Brushes.Cornsilk,
+				LogType.AllowedByUserList => Brushes.LightBlue,
+				LogType.Allow_PublicBlockListNotReady => Brushes.Gray,
+				_ => default
+			};
+		}
+	}
+
+	public override string ToString() {
+		return $"{type} {elem} count={count}";
+	}
+
 }
 
 enum LogType
 {
     Blocked,
     Allowed,
-    BlockedByRules,
-    AllowedByRules,
+    BlockedByUserList,
+    AllowedByUserList,
     Error,
     BlockedByPublicList,
-    PublicBlockListNotReady
+    Allow_PublicBlockListNotReady
 }
 
 //record RuleRec (string name, bool block);
@@ -58,15 +79,22 @@ record DnsElem(DnsType type, DnsClass cls, string data)
 {
 }
 
-
-
 internal class MainHolder {
+	public static MainHolder Inst;
 	public StoreCache cache = new();
 	DnsServer server = new();
 
+	public MainHolder() {
+		Inst = this;
+	}
+
+	public static void Create() {
+		if (Inst == null) { Inst = new(); }
+	}
+
 	public long logChangeId { get; private set; }
 
-	public Deque<LogItem> logLst = new();
+	public ObservableCollection<LogItem> logLst = new(); // todo observable deque
 
 	async void ProcessRequest(ServerItem dnsItem) {
 
@@ -102,21 +130,22 @@ internal class MainHolder {
 					if (Config.Mode == WorkMode.AllowAll)
 						return LogType.Allowed;
 					if (block == RuleBlockType.Block)
-						return LogType.BlockedByRules;
+						return LogType.BlockedByUserList;
 					if (block == RuleBlockType.Allow)
-						return LogType.AllowedByRules;
-					if (!PublicBlockList.Inst.BlockListReady)
-						return LogType.PublicBlockListNotReady;
+						return LogType.AllowedByUserList;
 					if (PublicBlockList.Inst.IsNeedBlock(name))
 						return LogType.BlockedByPublicList;
 					if (Config.Mode == WorkMode.OnlyWhiteList)
 						return LogType.Blocked;
+
+					if (!PublicBlockList.Inst.AllLoaded)
+						return LogType.Allow_PublicBlockListNotReady;
 					return LogType.Allowed;
 				}
 
 				logitem = new LogItem { type = calcLogType(), elem = dnsElem };
 
-				if (logitem.type != LogType.Allowed && logitem.type != LogType.AllowedByRules) {
+				if (logitem.type != LogType.Allowed && logitem.type != LogType.AllowedByUserList) {
 					req.Questions.RemoveAt(i);
 					wasRemoved = true;
 				}
@@ -127,17 +156,17 @@ internal class MainHolder {
 						first.count += 1;
 						logitem = first;
 					} else {
-						logLst.AddToFront(logitem);
+						logLst.Insert(0,logitem);
 					}
 				} else {
-					logLst.AddToFront(logitem);
+					logLst.Insert(0, logitem);
 				}
 				logChangeId++;
 
 				Log.Info($"New log entry: {logitem}");
 
-				while (logLst.Count > 500) {
-					logLst.RemoveFromBack();
+				while (logLst.Count > 250) {
+					logLst.RemoveLast();
 				}
 			}
 

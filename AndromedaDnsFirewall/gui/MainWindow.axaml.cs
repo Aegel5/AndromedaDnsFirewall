@@ -4,8 +4,8 @@ using Avalonia.Controls;
 namespace AndromedaDnsFirewall;
 
 public partial class MainWindow : Window {
-	MainHolder holder = new();
-	public static MainWindow Inst;
+
+	public static MainWindow? Inst;
 	public MainWindow() {
 		Inst = this;
 
@@ -15,8 +15,7 @@ public partial class MainWindow : Window {
 
 		UserLists.Load();
 		PublicBlockList.Init();
-		holder.Init();
-
+		MainHolder.Inst.Init();
 
 	}
 }

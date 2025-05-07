@@ -17,7 +17,9 @@
 				<views:TabLog />
 			</TabItem>
 			<TabItem Header="User block-list"></TabItem>
-			<TabItem Header="Public block-list"></TabItem>
+			<TabItem Header="Public block-list">
+				<views:PublicBlockTab />
+			</TabItem>
 			<TabItem Header="Log"></TabItem>
 		</TabControl>
 	</DockPanel>

@@ -9,14 +9,6 @@ using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall;
 
-internal enum BlockListType {
-    RawString = 0,
-    //WildString = 1,
-    //RegularString = 2
-}
-
-record PublicBlockListRec(string url, double updateHour, BlockListType type);
-
 class Config {
 	public static Config Inst { get; private set; }
 	static readonly string path = $"{ProgramUtils.BinFolder}/config.json";
@@ -35,8 +27,8 @@ class Config {
 		File.WriteAllText(path, cont);// blocks this thread!
 	}
 
-	public List<PublicBlockListRec> PublicBlockLists { get; set; } = [
-		new ("https://github.com/notracking/hosts-blocklists/raw/master/dnscrypt-proxy/dnscrypt-proxy.blacklist.txt", 5, BlockListType.RawString)
+	public List<PublicBlockEntry> PublicBlockLists { get; set; } = [
+		new PublicBlockEntry{Url = "https://github.com/notracking/hosts-blocklists/raw/master/dnscrypt-proxy/dnscrypt-proxy.blacklist.txt"}
 		];
 	public bool useServers_DOH { get; set; } = true;
 	public List<string> DnsResolvers_DOH { get; set; } = [

@@ -8,16 +8,12 @@ namespace AndromedaDnsFirewall;
 
 public partial class TabLog : UserControl
 {
-
-	class LogEntry {
-		public string Msg { get; set; } = "";
-		public IBrush Background { get; set; } = new SolidColorBrush();
-	}
-
-	List<LogEntry> listLogs = new();
     public TabLog()
     {
         InitializeComponent();
-		ge_logs.ItemsSource = listLogs;
+
+		MainHolder.Create();
+
+		ge_logs.ItemsSource = MainHolder.Inst.logLst;
     }
 }

@@ -15,12 +15,14 @@ public partial class App : Application {
 		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
 			Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
 
-			Config.Load();
-
 			Dispatcher.UIThread.UnhandledException += (a, b) => {
 				b.Handled = true;
 				GuiTools.ShowMessageNoWait(b.Exception.ToString(), "Top Level Exception");
 			};
+
+			Config.Load();
+
+			MainHolder.Create();
 
 			desktop.MainWindow = new MainWindow();
 		}
