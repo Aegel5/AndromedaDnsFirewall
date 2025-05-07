@@ -20,7 +20,7 @@ public partial class App : Application {
 				GuiTools.ShowMessageNoWait(b.Exception.ToString(), "Top Level Exception");
 			};
 
-			Config.Load();
+			Config.Init();
 
 			MainHolder.Create();
 

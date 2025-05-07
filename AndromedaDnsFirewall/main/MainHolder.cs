@@ -133,19 +133,19 @@ internal class MainHolder {
 						return LogType.BlockedByUserList;
 					if (block == RuleBlockType.Allow)
 						return LogType.AllowedByUserList;
-					if (PublicBlockList.Inst.IsNeedBlock(name))
+					if (PublicBlockList.IsNeedBlock(name))
 						return LogType.BlockedByPublicList;
 					if (Config.Mode == WorkMode.OnlyWhiteList)
 						return LogType.Blocked;
 
-					if (!PublicBlockList.Inst.AllLoaded)
+					if (!PublicBlockList.AllLoaded)
 						return LogType.Allow_PublicBlockListNotReady;
 					return LogType.Allowed;
 				}
 
 				logitem = new LogItem { type = calcLogType(), elem = dnsElem };
 
-				if (logitem.type != LogType.Allowed && logitem.type != LogType.AllowedByUserList) {
+				if (logitem.type == LogType.BlockedByPublicList || logitem.type == LogType.BlockedByUserList) {
 					req.Questions.RemoveAt(i);
 					wasRemoved = true;
 				}

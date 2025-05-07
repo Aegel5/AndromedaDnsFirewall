@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AndromedaDnsFirewall.dns_server;
 using Avalonia.Input;
+using System.Text.Json.Serialization.Metadata;
 
 namespace AndromedaDnsFirewall; 
 internal partial class PublicBlockEntry {
@@ -56,10 +57,14 @@ internal partial class PublicBlockEntry {
 				continue;
 			cache.Add(line.Trim());
 		}
-		DtLastLoad = TimePoint.Now;
+		dtLastLoad = TimePoint.Now;
+		try_load = TimePoint.MaxValue;
+
+		upd_hours();
+		Count = cache.Count;
 	}
 
-	async Task LoadFromUrl() {
+	public async Task LoadFromUrl() {
 		try {
 
 			var resp = await httpClient.GetAsync(Url);
@@ -70,12 +75,12 @@ internal partial class PublicBlockEntry {
 			apply(res);
 
 			// dump to file
-			var f = folder;
-			var p = path;
-			await Task.Run(() => {
-				Directory.CreateDirectory(f);
-				File.WriteAllText(p, res); // todo zip
-			});
+			//var f = folder;
+			//var p = path;
+			//await Task.Run(() => {
+			//	Directory.CreateDirectory(f);
+			//	File.WriteAllText(p, res); // todo zip
+			//});
 
 
 		} catch (Exception ex) {
@@ -99,11 +104,26 @@ internal partial class PublicBlockEntry {
 			Log.Err(ex);
 		}
 	}
-	bool ok => DtLastLoad.DeltToNow.TotalHours <= updateHour;
+	bool ok => TimePoint.Now < try_load && dtLastLoad.DeltToNow.TotalHours <= UpdateHour;
 	void tryafter(TimeSpan ts) {
-		DtLastLoad = TimePoint.Now.Add(-(TimeSpan.FromHours(updateHour) + ts));
+		try_load = TimePoint.Now.Add(ts);
 	}
-	public async Task Reload() {
+	void upd_hours() {
+		LastUpdHour = (int)dtLastLoad.DeltToNow.TotalHours;
+	}
+	void clear() {
+		cache.Clear();
+		Count = cache.Count;
+
+	}
+	public async Task UpdateReload() {
+
+		upd_hours();
+
+		if (!Enabled) {
+			clear();
+			return;
+		}
 
 		if (ok) return;
 
@@ -111,15 +131,15 @@ internal partial class PublicBlockEntry {
 
 		if (ok) return;
 
-		if(!Loaded) {
-			// нет никаких данных вообще!
-			await LoadFromFile();
-		} 
+		//if(!Loaded) {
+		//	// нет никаких данных вообще!
+		//	await LoadFromFile();
+		//} 
 
 		if(!Loaded) {
-			tryafter(10.sec()); // все еще пусто!
+			tryafter(30.sec()); // все еще пусто!
 		} else {
-			tryafter(10.min()); // есть старая версия, но пробуем url
+			tryafter(10.min()); // есть старая версия, поэтому задержка больше.
 		}
 
 	}
