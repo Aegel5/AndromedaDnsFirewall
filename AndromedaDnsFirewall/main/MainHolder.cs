@@ -35,7 +35,7 @@ record LogItem
 			return type switch { 
 				LogType.BlockedByPublicList => Brushes.DarkOrchid, 
 				LogType.BlockedByUserList => Brushes.Cornsilk,
-				LogType.AllowedByUserList => Brushes.LightBlue,
+				LogType.AllowedByUserList => Brushes.GreenYellow,
 				LogType.Allow_PublicBlockListNotReady => Brushes.Gray,
 				_ => default
 			};
@@ -124,7 +124,7 @@ internal class MainHolder {
 
 				logitem = new LogItem { type = LogType.Blocked, elem = dnsElem };
 
-				UserLists.Inst.list.TryGetValue(name, out RuleBlockType block);
+				UserLists.list.TryGetValue(name, out RuleBlockType block);
 
 				LogType calcLogType() {
 					if (Config.Mode == WorkMode.AllowAll)

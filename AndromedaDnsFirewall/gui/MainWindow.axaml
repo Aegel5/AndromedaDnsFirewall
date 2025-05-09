@@ -10,13 +10,18 @@
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Header="File"></MenuItem>
 			<MenuItem Header="Сервис"></MenuItem>
-			<MenuItem Header="Блокировать по спискам"></MenuItem>
+			<MenuItem Name="ge_cur_block" Header="Блокировать по спискам">
+				<MenuItem Name="ge_block" Header="Блокировать по спискам"></MenuItem>
+				<MenuItem Name="ge_allow" Header="Разрешить все"></MenuItem>
+			</MenuItem>
 		</Menu>
 		<TabControl >
 			<TabItem Header="Перехват">
 				<views:TabLog />
 			</TabItem>
-			<TabItem Header="User block-list"></TabItem>
+			<TabItem Header="User block-list">
+				<views:UserBlockTab />
+			</TabItem>
 			<TabItem Header="Public block-list">
 				<views:PublicBlockTab />
 			</TabItem>

@@ -6,6 +6,12 @@
              x:Class="AndromedaDnsFirewall.TabLog">
 	
 	<ListBox  Name="ge_logs">
+		<ListBox.ContextMenu>
+			<ContextMenu>
+				<MenuItem Name="cmd_block" Header="Block" />
+				<MenuItem Name="cmd_allow" Header="Allow" />
+			</ContextMenu>
+		</ListBox.ContextMenu>
 		<ListBox.Styles>
 			<Style Selector="ListBoxItem">
 				<Setter Property="Padding" Value="0"/>

@@ -14,6 +14,21 @@ public partial class TabLog : UserControl
 
 		MainHolder.Create();
 
+		cmd_block.Click += (a, b) => {
+			var cur = (LogItem)ge_logs.SelectedItem;
+			if (cur == null) return;
+			UserLists.Block(cur.elem.data);
+			UserBlockTab.Inst.Update();
+
+		};
+		cmd_allow.Click += (a, b) => {
+			var cur = (LogItem)ge_logs.SelectedItem;
+			if (cur == null) return;
+			UserLists.Allow(cur.elem.data);
+			UserBlockTab.Inst.Update();
+		};
+
+
 		ge_logs.ItemsSource = MainHolder.Inst.logLst;
     }
 }
