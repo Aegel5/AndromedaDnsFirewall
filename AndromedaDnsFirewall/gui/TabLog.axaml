@@ -10,6 +10,7 @@
 			<ContextMenu>
 				<MenuItem Name="cmd_block" Header="Block" />
 				<MenuItem Name="cmd_allow" Header="Allow" />
+				<MenuItem Name="cmd_clear" Header="Clear" />
 			</ContextMenu>
 		</ListBox.ContextMenu>
 		<ListBox.Styles>

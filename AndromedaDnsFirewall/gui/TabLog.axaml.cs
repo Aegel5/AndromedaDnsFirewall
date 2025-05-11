@@ -28,6 +28,10 @@ public partial class TabLog : UserControl
 			UserBlockTab.Inst.Update();
 		};
 
+		cmd_clear.Click += (a, b) => {
+			MainHolder.Inst.logLst.Clear();
+		};
+
 
 		ge_logs.ItemsSource = MainHolder.Inst.logLst;
     }
