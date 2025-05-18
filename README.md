@@ -1,5 +1,5 @@
 # AndromedaDnsFirewall
- Simple Dns firewall for your PC
+ Andromeda Dns Firewall - simple DNS firewall for your PC
 
  Возможности:
  - Показывает все обращения к DNS резолверу.
