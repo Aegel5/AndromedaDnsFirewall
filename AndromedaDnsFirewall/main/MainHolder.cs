@@ -27,6 +27,7 @@ record LogItem
     public LogType type;
     public DnsElem elem;
     public int count  = 1;
+	public DateTime dt;
 
 	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.FromRgb(100,0,0));
 
@@ -43,7 +44,7 @@ record LogItem
 	}
 
 	public override string ToString() {
-		return $"{type} {elem} count={count}";
+		return $"{dt} {type} {elem} count={count}";
 	}
 
 }
@@ -143,7 +144,7 @@ internal class MainHolder {
 					return LogType.Allowed;
 				}
 
-				logitem = new LogItem { type = calcLogType(), elem = dnsElem };
+				logitem = new LogItem { type = calcLogType(), elem = dnsElem, dt = DateTime.Now };
 
 				if (logitem.type == LogType.BlockedByPublicList || logitem.type == LogType.BlockedByUserList) {
 					req.Questions.RemoveAt(i);
@@ -154,6 +155,7 @@ internal class MainHolder {
 					var first = logLst[0];
 					if (first with { count = 1 } == logitem) {
 						first.count += 1;
+						first.dt = DateTime.Now;
 						logitem = first;
 					} else {
 						logLst.Insert(0,logitem);
