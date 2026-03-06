@@ -1,18 +1,14 @@
-﻿using System;
+﻿using AndromedaDnsFirewall.dns_server;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AndromedaDnsFirewall.dns_server;
-using Avalonia.Input;
-using System.Text.Json.Serialization.Metadata;
 
-namespace AndromedaDnsFirewall; 
+namespace AndromedaDnsFirewall;
 internal partial class PublicBlockEntry {
 
 	public HashSet<string> cache = new();
@@ -136,7 +132,7 @@ internal partial class PublicBlockEntry {
 		//	await LoadFromFile();
 		//} 
 
-		if(!Loaded) {
+		if (!Loaded) {
 			tryafter(30.sec()); // все еще пусто!
 		} else {
 			tryafter(10.min()); // есть старая версия, поэтому задержка больше.

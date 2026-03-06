@@ -1,43 +1,42 @@
 ﻿using AndromedaDnsFirewall.dns_server;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using DynamicData;
 using Makaretu.Dns;
-using Nito.Collections;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reactive.Linq;
 
 namespace AndromedaDnsFirewall;
 
-class CacheItem
-{
-    public string Name;
-    public string[] ip;
-    DateTime dtLastUse;
-    //int next;
+class CacheItem {
+	public string Name;
+	public string[] ip;
+	DateTime dtLastUse;
+	//int next;
 }
 
-record LogItem 
-{
-    public LogType type;
-    public DnsElem elem;
-    public int count  = 1;
+record LogItem {
+	public bool IsSame(LogItem other) {
+		return type == other.type && elem == other.elem;
+	}
+	public LogType type;
+	public DnsElem elem;
+	public int count = 1;
 	public DateTime dt;
 
-	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.FromRgb(100,0,0));
+	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.FromRgb(100, 0, 0));
 
 	public IBrush? Background {
 		get {
-			return type switch { 
-				LogType.BlockedByPublicList => Brushes.DarkOrchid, 
+			return type switch {
+				LogType.BlockedByPublicList => Brushes.DarkOrchid,
 				LogType.BlockedByUserList => Brushes.Cornsilk,
 				LogType.AllowedByUserList => Brushes.GreenYellow,
 				LogType.Allow_PublicBlockListNotReady => Brushes.Gray,
+				LogType.Block_PublicBlockListNotReady => Brushes.Gray,
 				_ => default
 			};
 		}
@@ -49,35 +48,32 @@ record LogItem
 
 }
 
-enum LogType
-{
-    Blocked,
-    Allowed,
-    BlockedByUserList,
-    AllowedByUserList,
-    Error,
-    BlockedByPublicList,
-    Allow_PublicBlockListNotReady
+enum LogType {
+	Blocked,
+	Allowed,
+	BlockedByUserList,
+	AllowedByUserList,
+	Error,
+	BlockedByPublicList,
+	Allow_PublicBlockListNotReady,
+	Block_PublicBlockListNotReady
 }
 
 //record RuleRec (string name, bool block);
 
-enum WorkMode
-{
-    OnlyWhiteList = 0,
-    AllExceptBlockList = 1,
-    AllowAll = 2
-    //AllowAllWitoutLogs
+enum WorkMode {
+	OnlyWhiteList = 0,
+	AllExceptBlockList = 1,
+	AllowAll = 2
+	//AllowAllWitoutLogs
 
 }
 
-class StoreCache
-{
-    public Dictionary<string, CacheItem> cacheLst = new();
+class StoreCache {
+	public Dictionary<string, CacheItem> cacheLst = new();
 }
 
-record DnsElem(DnsType type, DnsClass cls, string data)
-{
+record DnsElem(DnsType type, DnsClass cls, string data) {
 }
 
 internal class MainHolder {
@@ -85,17 +81,26 @@ internal class MainHolder {
 	public StoreCache cache = new();
 	DnsServer server = new();
 
-	public MainHolder() {
-		Inst = this;
-	}
-
 	public static void Create() {
 		if (Inst == null) { Inst = new(); }
 	}
 
 	public long logChangeId { get; private set; }
 
-	public ObservableCollection<LogItem> logLst = new(); // todo observable deque
+	//public ObservableCollection<LogItem> logLst = new(); // todo observable deque
+	public readonly SourceList<LogItem> logSource = new();
+	public readonly ReadOnlyObservableCollection<LogItem> logObservable;
+
+	public MainHolder() {
+		Inst = this;
+		logSource.LimitSizeTo(200).Subscribe();
+		logSource.Connect()
+			.Buffer(TimeSpan.FromSeconds(1))
+			.FlattenBufferResult()
+			.Reverse()
+			.Bind(out logObservable)
+			.Subscribe();
+	}
 
 	async void ProcessRequest(ServerItem dnsItem) {
 
@@ -140,36 +145,42 @@ internal class MainHolder {
 						return LogType.Blocked;
 
 					if (!PublicBlockList.AllLoaded)
-						return LogType.Allow_PublicBlockListNotReady;
+						return LogType.Block_PublicBlockListNotReady;
+
 					return LogType.Allowed;
 				}
 
 				logitem = new LogItem { type = calcLogType(), elem = dnsElem, dt = DateTime.Now };
 
-				if (logitem.type == LogType.BlockedByPublicList || logitem.type == LogType.BlockedByUserList) {
+				if (logitem.type
+					is LogType.BlockedByPublicList
+					or LogType.BlockedByUserList
+					or LogType.Block_PublicBlockListNotReady
+					) {
 					req.Questions.RemoveAt(i);
 					wasRemoved = true;
 				}
 
-				if (logLst.Any()) {
-					var first = logLst[0];
-					if (first with { count = 1 } == logitem) {
+				bool edited = false;
+				if (logSource.Count != 0) {
+					var first = logSource.Items[^1];
+					if (first.IsSame(logitem)) {
 						first.count += 1;
 						first.dt = DateTime.Now;
 						logitem = first;
-					} else {
-						logLst.Insert(0,logitem);
+						edited = true;
 					}
-				} else {
-					logLst.Insert(0, logitem);
+				}
+				if (!edited) {
+					logSource.Add(logitem);
 				}
 				logChangeId++;
 
 				Log.Info($"New log entry: {logitem}");
 
-				while (logLst.Count > 200) {
-					logLst.RemoveLast();
-				}
+				//while (logLst.Count > 200) {
+				//	logLst.RemoveLast();
+				//}
 			}
 
 			LazyMessage lazy = new() { msg = req };

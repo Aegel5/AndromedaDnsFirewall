@@ -6,10 +6,10 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>False</AvaloniaUseCompiledBindingsByDefault>
-    <ApplicationIcon>assets\andrm4.ico</ApplicationIcon>
+    <ApplicationIcon>jpg(7)f-Photoroom.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="assets\andrm4.ico" />
+    <Content Include="jpg(7)f-Photoroom.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,7 +25,7 @@
       <IncludeAssets>none</IncludeAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="DynamicData" Version="9.4.1" />
     <PackageReference Include="Makaretu.Dns" Version="2.0.1" />
-    <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
   </ItemGroup>
 </Project>

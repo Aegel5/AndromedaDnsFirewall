@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -13,7 +9,7 @@ namespace AndromedaDnsFirewall;
 
 class Config {
 	public static Config Inst { get; private set; } = new();
-	static readonly string path = $"{ProgramUtils.BinFolder}/config.json";
+	static readonly string path = ProgramUtils.FindOurPath("AndromedaDnsFirewall.json");
 
 	static public void Init() {
 
@@ -76,7 +72,7 @@ class Config {
 		"8.8.4.4",
 		"8.8.8.8"
 		];
-        public string ServerAddress { get; set; } = "127.0.0.1:53";
+	public string ServerAddress { get; set; } = "127.0.0.1:53";
 
 	[JsonIgnore]
 	public WorkMode mode { get; set; } = WorkMode.AllExceptBlockList;
