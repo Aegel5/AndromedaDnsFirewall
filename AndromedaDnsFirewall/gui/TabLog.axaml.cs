@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using DynamicData;
 
 namespace AndromedaDnsFirewall;
 
@@ -23,7 +24,7 @@ public partial class TabLog : UserControl {
 		};
 
 		cmd_clear.Click += (a, b) => {
-			//MainHolder.Inst.logLst.Clear();
+			MainHolder.Inst.logSource.Clear();
 		};
 
 

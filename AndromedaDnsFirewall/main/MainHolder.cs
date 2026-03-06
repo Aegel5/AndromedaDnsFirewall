@@ -27,12 +27,12 @@ record LogItem {
 	public int count = 1;
 	public DateTime dt;
 
-	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.FromRgb(100, 0, 0));
+	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.Parse("#7792d1"));
 
 	public IBrush? Background {
 		get {
 			return type switch {
-				LogType.BlockedByPublicList => Brushes.DarkOrchid,
+				LogType.BlockedByPublicList => c_block1,
 				LogType.BlockedByUserList => Brushes.Cornsilk,
 				LogType.AllowedByUserList => Brushes.GreenYellow,
 				LogType.Allow_PublicBlockListNotReady => Brushes.Gray,
