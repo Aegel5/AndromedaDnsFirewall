@@ -14,7 +14,7 @@ namespace AndromedaDnsFirewall;
 class CacheItem {
 	public string Name;
 	public string[] ip;
-	DateTime dtLastUse;
+	//DateTime dtLastUse;
 	//int next;
 }
 
@@ -28,12 +28,13 @@ record LogItem {
 	public DateTime dt;
 
 	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.Parse("#7792d1"));
+	static IImmutableSolidColorBrush c_block2 = new ImmutableSolidColorBrush(Color.Parse("#edcc9d"));
 
 	public IBrush? Background {
 		get {
 			return type switch {
 				LogType.BlockedByPublicList => c_block1,
-				LogType.BlockedByUserList => Brushes.Cornsilk,
+				LogType.BlockedByUserList => c_block2,
 				LogType.AllowedByUserList => Brushes.GreenYellow,
 				LogType.Allow_PublicBlockListNotReady => Brushes.Gray,
 				LogType.Block_PublicBlockListNotReady => Brushes.Gray,
@@ -43,7 +44,7 @@ record LogItem {
 	}
 
 	public override string ToString() {
-		return $"{dt} {type} {elem} count={count}";
+		return $"{dt.ToLocalQuick()} {type} {(count==1?"":$"({count})")} {elem.data} {elem.type}";
 	}
 
 }
@@ -150,7 +151,7 @@ internal class MainHolder {
 					return LogType.Allowed;
 				}
 
-				logitem = new LogItem { type = calcLogType(), elem = dnsElem, dt = DateTime.Now };
+				logitem = new LogItem { type = calcLogType(), elem = dnsElem, dt = DateTime.UtcNow };
 
 				if (logitem.type
 					is LogType.BlockedByPublicList
@@ -166,7 +167,7 @@ internal class MainHolder {
 					var first = logSource.Items[^1];
 					if (first.IsSame(logitem)) {
 						first.count += 1;
-						first.dt = DateTime.Now;
+						first.dt = DateTime.UtcNow;
 						logitem = first;
 						logSource.ReplaceAt(logSource.Count-1, first); //trigger update
 						edited = true;
