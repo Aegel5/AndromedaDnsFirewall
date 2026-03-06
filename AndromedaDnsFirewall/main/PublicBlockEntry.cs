@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.ComponentModel;
-
-namespace AndromedaDnsFirewall; 
+namespace AndromedaDnsFirewall;
 internal partial class PublicBlockEntry : ObservableObject {
 
 	public PublicBlockEntry(string url) {

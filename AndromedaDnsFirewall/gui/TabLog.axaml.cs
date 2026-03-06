@@ -1,16 +1,10 @@
-﻿using System.Collections.Generic;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media;
+﻿using Avalonia.Controls;
 
 namespace AndromedaDnsFirewall;
 
-public partial class TabLog : UserControl
-{
-    public TabLog()
-    {
-        InitializeComponent();
+public partial class TabLog : UserControl {
+	public TabLog() {
+		InitializeComponent();
 
 		MainHolder.Create();
 
@@ -29,10 +23,10 @@ public partial class TabLog : UserControl
 		};
 
 		cmd_clear.Click += (a, b) => {
-			MainHolder.Inst.logLst.Clear();
+			//MainHolder.Inst.logLst.Clear();
 		};
 
 
-		ge_logs.ItemsSource = MainHolder.Inst.logLst;
-    }
+		ge_logs.ItemsSource = MainHolder.Inst.logObservable;
+	}
 }

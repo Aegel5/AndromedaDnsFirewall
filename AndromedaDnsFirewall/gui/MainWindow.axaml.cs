@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 
 namespace AndromedaDnsFirewall;
 
@@ -11,7 +10,7 @@ public partial class MainWindow : Window {
 
 		InitializeComponent();
 
-		ge_block.Click += (a, b) =>{ 
+		ge_block.Click += (a, b) => {
 			Config.Inst.mode = WorkMode.AllExceptBlockList;
 			ge_cur_block.Header = ge_block.Header;
 		};

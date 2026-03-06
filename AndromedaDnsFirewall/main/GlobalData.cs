@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace AndromedaDnsFirewall;
 
-namespace AndromedaDnsFirewall;
-
-static class GlobalData
-{
-    static public bool QuitPending;
+static class GlobalData {
+	static public bool QuitPending;
 }

@@ -1,17 +1,13 @@
-﻿using System.Collections.Generic;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+﻿using Avalonia.Controls;
+using System.Collections.Generic;
 
 namespace AndromedaDnsFirewall;
 
-public partial class UserBlockTab : UserControl
-{
+public partial class UserBlockTab : UserControl {
 	public static UserBlockTab Inst;
-    public UserBlockTab()
-    {
+	public UserBlockTab() {
 		Inst = this;
-        InitializeComponent();
+		InitializeComponent();
 
 		cmd_delete.Click += (a, b) => {
 			if (ge_logs.SelectedItem == null) return;

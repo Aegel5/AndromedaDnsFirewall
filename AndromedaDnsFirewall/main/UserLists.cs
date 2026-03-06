@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall;
 internal enum RuleBlockType {
@@ -18,7 +12,7 @@ internal class UserLists {
 
 	static readonly string path = $"{ProgramUtils.BinFolder}/user_list.json";
 
-	
+
 
 	public static void Save() {
 		string jsonString = JsonSerializer.Serialize(list);
@@ -30,7 +24,7 @@ internal class UserLists {
 		if (!File.Exists(path)) return;
 		var jsonString = File.ReadAllText(path);
 		list = JsonSerializer.Deserialize<Dictionary<string, RuleBlockType>>(jsonString);
-	}	
+	}
 
 	public static void Delete(string host) {
 		list.Remove(host);
