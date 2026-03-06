@@ -1,15 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+	
+	<PublishSingleFile>True</PublishSingleFile>
 
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>False</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>jpg(7)f-Photoroom.ico</ApplicationIcon>
 	
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+  <DebugType>none</DebugType>
+  <DebugSymbols>false</DebugSymbols>
+</PropertyGroup>
+
   <ItemGroup>
     <Content Include="jpg(7)f-Photoroom.ico" />
   </ItemGroup>
