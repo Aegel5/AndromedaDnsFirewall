@@ -168,6 +168,7 @@ internal class MainHolder {
 						first.count += 1;
 						first.dt = DateTime.Now;
 						logitem = first;
+						logSource.ReplaceAt(logSource.Count-1, first); //trigger update
 						edited = true;
 					}
 				}

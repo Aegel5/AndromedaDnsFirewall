@@ -5,7 +5,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AndromedaDnsFirewall.TabLog">
 	
-	<ListBox  Name="ge_logs">
+	<ListBox 
+		AutoScrollToSelectedItem="False"  
+		Name="ge_logs">
+		
 		<ListBox.ContextMenu>
 			<ContextMenu>
 				<MenuItem Name="cmd_block" Header="Block" />
