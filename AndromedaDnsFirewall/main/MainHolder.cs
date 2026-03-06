@@ -167,7 +167,7 @@ internal class MainHolder {
 
 				Log.Info($"New log entry: {logitem}");
 
-				while (logLst.Count > 250) {
+				while (logLst.Count > 200) {
 					logLst.RemoveLast();
 				}
 			}
