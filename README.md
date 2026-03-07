@@ -8,7 +8,8 @@
  - Авто-настраиваемый DNS-over-Https резолвер с кешом в 4 часа.
  - Кроссплатформенность - возможность работы на Linux и Mac.
 
- ![изображение](https://github.com/user-attachments/assets/1207f291-cc2a-4d67-b7b9-829feda8a8ab)
+<img width="1426" height="746" alt="изображение" src="https://github.com/user-attachments/assets/ef2e4753-221e-4178-86db-0199f2f7eab0" />
+
 
 
 Для установки необходимо указать `127.0.0.1:53` для DNS в настройках сети.
