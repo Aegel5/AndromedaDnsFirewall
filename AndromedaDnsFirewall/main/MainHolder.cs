@@ -1,13 +1,11 @@
 ﻿using AndromedaDnsFirewall.dns_server;
+using AndromedaDnsFirewall.Utils;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
-using DynamicData;
 using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Linq;
 
 namespace AndromedaDnsFirewall;
 
@@ -88,19 +86,10 @@ internal class MainHolder {
 
 	public long logChangeId { get; private set; }
 
-	//public ObservableCollection<LogItem> logLst = new(); // todo observable deque
-	public readonly SourceList<LogItem> logSource = new();
-	public readonly ReadOnlyObservableCollection<LogItem> logObservable;
+	public ObservableDeque<LogItem> logSource = new();
 
 	public MainHolder() {
 		Inst = this;
-		logSource.LimitSizeTo(200).Subscribe();
-		logSource.Connect()
-			.Buffer(TimeSpan.FromSeconds(1))
-			.FlattenBufferResult()
-			.Reverse()
-			.Bind(out logObservable)
-			.Subscribe();
 	}
 
 	async void ProcessRequest(ServerItem dnsItem) {
@@ -163,26 +152,30 @@ internal class MainHolder {
 				}
 
 				bool edited = false;
+
 				if (logSource.Count != 0) {
-					var first = logSource.Items[^1];
+					var first = logSource.Front;
 					if (first.IsSame(logitem)) {
 						first.count += 1;
 						first.dt = DateTime.UtcNow;
 						logitem = first;
-						logSource.ReplaceAt(logSource.Count-1, first); //trigger update
+						logSource.FrontUpdated();
 						edited = true;
 					}
 				}
+
 				if (!edited) {
-					logSource.Add(logitem);
+					logSource.PushFront(logitem);
+					while (logSource.Count > 150) {
+						logSource.PopBack();
+					}
 				}
+
 				logChangeId++;
 
 				Log.Info($"New log entry: {logitem}");
 
-				//while (logLst.Count > 200) {
-				//	logLst.RemoveLast();
-				//}
+
 			}
 
 			LazyMessage lazy = new() { msg = req };

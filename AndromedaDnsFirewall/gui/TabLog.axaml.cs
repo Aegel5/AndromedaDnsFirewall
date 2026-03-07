@@ -1,5 +1,5 @@
 ﻿using Avalonia.Controls;
-using DynamicData;
+
 
 namespace AndromedaDnsFirewall;
 
@@ -28,6 +28,6 @@ public partial class TabLog : UserControl {
 		};
 
 
-		ge_logs.ItemsSource = MainHolder.Inst.logObservable;
+		ge_logs.ItemsSource = MainHolder.Inst.logSource;
 	}
 }
