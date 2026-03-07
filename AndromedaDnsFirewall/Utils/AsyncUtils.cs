@@ -12,17 +12,6 @@ public class AsyncUtils {
 		}
 		return false;
 	}
-	static public async Task WaitOrThrowCancelable(Task task, CancellationTokenSource token, TimeSpan timeout) {
-		if (!await WaitWithTimeout(task, timeout)) {
-			token.Cancel(); // запросим cancel
-			try {
-				await task; // здесь по идее случится exception cancel request
-			} catch (TaskCanceledException) {
-			}
-			throw new Exception($"timeout wait task {timeout.TotalSeconds} sec"); // на всякий случай сами кинем exception 
-		}
-	}
-
 }
 
 // самая простая реализация на TaskCompletionSource
