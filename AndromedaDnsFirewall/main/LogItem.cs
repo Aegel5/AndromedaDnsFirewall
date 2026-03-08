@@ -12,7 +12,7 @@ enum LogType {
 	Allowed,
 	BlockedByUserList,
 	AllowedByUserList,
-	Error,
+	Exception,
 	BlockedByPublicList,
 	Allow_PublicBlockListNotReady,
 	Block_PublicBlockListNotReady
@@ -38,7 +38,7 @@ record LogItem {
 		this.type = type;
 		this.host = host;
 		questInfos.Add(BuildQuestInfo(t, c));
-		dt = DateTime.UtcNow;
+		//dt = DateTime.UtcNow;
 	}
 
 	static string BuildQuestInfo(DnsType t, DnsClass c) {

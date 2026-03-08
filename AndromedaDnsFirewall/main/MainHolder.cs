@@ -114,39 +114,24 @@ internal class MainHolder {
 						break;
 					if (cur.IsSame(logitem)) {
 						cur.count++;
-						//cur.dt = logitem.dt;
+						cur.dt = DateTime.UtcNow;
 						cur.AddQuestInfo(logitem);
 						logSource.NotifyUpdated(iLogs);
-						//if (iLogs == 0) {
-						//	logSource.NotifyUpdated(0);
-						//} else{
-						//	//was_move = true;
-						//	logSource.NotifyUpdated(iLogs);
-						//	//logSource.Move(iLogs, 0);
-						//} 
+						logitem = cur;
 						edited = true;
 						break;
 					}
 				}
 
 				if (!edited) {
-					//if (logSource.Count >= 1 && logitem.IsSame(logSource[0])) {
-					//	int k = 0;
-					//}
+					logitem.dt = DateTime.UtcNow;
 					logSource.PushFrontNotify(logitem);
 					while (logSource.Count > 150) {
 						logSource.PopBackNofity();
 					}
-
 				}
 
 				logChangeId++;
-
-				//for (int i = 0; i < logSource.Count-2; i++) {
-				//	if (logSource[i].IsSame(logSource[i + 1])){
-				//		int k = 0;
-				//	}
-				//}
 
 				Log.Info($"New log entry: {logitem}");
 			}
@@ -173,7 +158,7 @@ internal class MainHolder {
 		} catch (Exception ex) {
 			Log.Err(ex);
 			if (logitem != null) {
-				logitem.type = LogType.Error;
+				logitem.type = LogType.Exception;
 			}
 		} finally {
 			if (dnsItem.answ == null) {
