@@ -58,7 +58,7 @@ internal class MainHolder {
 
 			if (Config.Inst.mode == WorkMode.AllowAll) {
 				// simple bypass request
-				dnsItem.answ = await DnsResolver.Inst.ResolveBypass(dnsItem.req);
+				dnsItem.answ = await DnsResolver.Inst.RawResolveBypass(dnsItem.req);
 				return;
 			}
 
@@ -67,11 +67,15 @@ internal class MainHolder {
 			reqId = req.Id;
 			bool wasBlocked = false;
 
-			Question fortest = null;
+			//Question fortest = null;
+
+			//if (req.Questions.Count > 1) {
+			//	int k = 0;
+			//}
 
 			for (int iQuest = req.Questions.Count - 1; iQuest >= 0; iQuest--) {
 				var quest = req.Questions[iQuest];
-				fortest = quest;
+				//fortest = quest;
 				var name = quest.Name.ToString();
 
 				UserLists.list.TryGetValue(name, out RuleBlockType block);
@@ -147,7 +151,14 @@ internal class MainHolder {
 
 
 			if (req.Questions.Any()) {
-				var lazyres = await DnsResolver.Inst.Resolve(lazy);
+				var lazyres = await DnsResolver.Inst.ResolveWithCache(lazy);
+				//var q = req.Questions.FirstOrDefault(x => x.Type == DnsType.AAAA);
+				//if (q != null) {
+				//	var msg = lazyres.MsgGet;
+				//	if(msg.Answers.Count != 0){
+				//		int k = 0; 
+				//	}
+				//}
 				dnsItem.answ = lazyres.BuffGet;
 			} else {
 				Message msg = new() { Id = reqId };

@@ -35,7 +35,7 @@ internal partial class PublicBlockEntry {
 	static async ValueTask<Stream> ConnectCallback(SocketsHttpConnectionContext context, CancellationToken cancellationToken) {
 
 		// use our own resolver!
-		var ip = await DnsResolver.Inst.Resolve(context.DnsEndPoint.Host);
+		var ip = await DnsResolver.Inst.ResolveNoCache(context.DnsEndPoint.Host);
 		var endPoint = new DnsEndPoint(ip.ToString(), context.DnsEndPoint.Port);
 
 		var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };

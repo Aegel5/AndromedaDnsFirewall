@@ -1,4 +1,5 @@
-﻿using Makaretu.Dns;
+﻿using AndromedaDnsFirewall.network;
+using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -187,20 +188,53 @@ namespace AndromedaDnsFirewall.dns_server {
 			}
 		}
 
-		async public Task<byte[]> ResolveBypass(byte[] query) {
+		// Полное отсутствие парсинга сообщения и как следствие кеша.
+		async public Task<byte[]> RawResolveBypass(byte[] query) { 
 			return await resolveInt(NextServ, query);
 		}
 
-		async public Task<LazyMessage> Resolve(LazyMessage msg) {
-			var res = await resolveInt(NextServ, msg.BuffGet);
-			return new() { buf = res };
+
+		IpCache cacheIp = new();
+
+		async public Task<LazyMessage> ResolveWithCache(LazyMessage msg) {
+
+			// Проверим кеш. Для простоты (99% случаев) проверяем только если кол-во вопросов = 1.
+
+			string host_cache = null;
+			if (msg.MsgGet.Questions.Count == 1) {
+				var q = msg.MsgGet.Questions[0];
+				if (q.Type is DnsType.A or DnsType.AAAA) {
+					host_cache = q.Name.ToCanonical().ToString();
+					if (q.Type is DnsType.AAAA) {
+						host_cache += "@";
+					}
+				}
+			} 
+
+			if (host_cache != null) {
+				var cached = cacheIp.Get(host_cache);
+				if (cached != null) {
+					return new LazyMessage { buf = cached };
+				}
+			} else {
+				int k = 0;
+			}
+
+			var res = new LazyMessage { buf = await resolveInt(NextServ, msg.BuffGet) };
+
+			// Добавляем в кеш.
+			if (host_cache != null) {
+				cacheIp.Add(host_cache, res.BuffGet);
+			}
+
+			return res;
 		}
 
 
 
 		Random rnd = new();
 
-		async public Task<IPAddress> Resolve(string name) {
+		async public Task<IPAddress> ResolveNoCache(string name) { // для простоты без кеша.
 			Message msg = new();
 			msg.Questions.Add(new Question { Type = DnsType.A, Name = name });
 
