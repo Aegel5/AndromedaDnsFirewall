@@ -41,9 +41,9 @@ public class Deque<T> : IEnumerable<T>, IList<T>, IList {
     [MethodImpl(256)] ref T get(int i) => ref _buffer[(_offset + i) & _mask];
     public void PushBack(T item) { if (Count == _buffer.Length) Extend();  get(Count++) = item; }
     public void Add(T item) { PushBack(item); }
-    virtual public T PopBack() { Debug.Assert(Count > 0); return get(--Count); }
+    public T PopBack() { Debug.Assert(Count > 0); return get(--Count); }
 
-	virtual public void PushFront(T item) {
+	public void PushFront(T item) {
         if (Count == _buffer.Length) Extend();
         Count++;
         _buffer[(--_offset) & _mask] = item;
@@ -96,7 +96,7 @@ public class Deque<T> : IEnumerable<T>, IList<T>, IList {
 	T IList<T>.this[int index] { get => get(index); set => get(index)=value; }
 
 	public ref T this[int i] => ref get(i);
-    virtual public void Clear() { Count = 0; }
+    public void Clear() { Count = 0; }
 
     public void Insert(int index, T item) {
         Debug.Assert(0 <= index && index <= Count);

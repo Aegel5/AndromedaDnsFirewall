@@ -7,35 +7,43 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall.Utils; 
-internal class ObservableDeque<T> : Deque<T> {
+internal class ObservableDeque<T> : Deque<T>, INotifyCollectionChanged {
 
-	//async void Updater() {
-	//	while (true) {
-	//		await Task.Delay(1000);
-	//		if (needFullUpdate) {
-	//			needFullUpdate = false;
-	//			OnCollectionChanged(new NotifyCollectionChangedEventArgs(
-	//				NotifyCollectionChangedAction.Reset));
-	//		}
-	//	}
-	//}
+	List<int> indexToUpdate = new();
+
+	async void Updater() {
+		while (true) {
+			await Task.Delay(1000);
+			NotifyUpdate();
+		}
+	}
+
+	void NotifyUpdate() {
+		if (indexToUpdate.Count == 0)
+			return;
+		foreach (var item in indexToUpdate) {
+			OnCollectionChanged(new NotifyCollectionChangedEventArgs(
+				NotifyCollectionChangedAction.Replace, this[item], this[item], item));
+		}
+		indexToUpdate.Clear();
+	}
 
 	public ObservableDeque() {
-		//Updater();
+		Updater();
 	}
 
 
 	public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-	bool needFullUpdate = false;
-
-	public override void PushFront(T item) {
+	public void PushFrontNotify(T item) {
+		NotifyUpdate();
 		base.PushFront(item);
 		OnCollectionChanged(new NotifyCollectionChangedEventArgs(
 			NotifyCollectionChangedAction.Add, item, 0));
 	}
 
-	public override T PopBack() {
+	public T PopBackNofity() {
+		NotifyUpdate();
 		var item = base.PopBack();
 		OnCollectionChanged(new NotifyCollectionChangedEventArgs(
 			NotifyCollectionChangedAction.Remove,
@@ -44,27 +52,29 @@ internal class ObservableDeque<T> : Deque<T> {
 		return item;
 	}
 
-	public override void Clear() {
+	public void ClearNotify() {
+		indexToUpdate.Clear();
 		base.Clear();
 		OnCollectionChanged(new NotifyCollectionChangedEventArgs(
 			NotifyCollectionChangedAction.Reset));
 	}
 
 	public void NotifyUpdated(int i) {
-		OnCollectionChanged(new NotifyCollectionChangedEventArgs(
-			NotifyCollectionChangedAction.Replace, this[i], this[i], i));
+		if (indexToUpdate.Contains(i)) 
+			return;
+		indexToUpdate.Add(i);
 	}
 
-	public void Move(int iFrom, int iTo) {
-		var target = this[iFrom];
-		var dir = iFrom > iTo ? 1 : -1;
-		for (int i = iTo; i != iFrom; i+=dir) {
-			this[i+dir] = this[i];
-		}
-		this[iTo] = target;
-		OnCollectionChanged(new NotifyCollectionChangedEventArgs(
-			NotifyCollectionChangedAction.Move, target, iTo, iFrom));
-	}
+	//public void Move(int iFrom, int iTo) {
+	//	var target = this[iFrom];
+	//	var dir = iFrom > iTo ? 1 : -1;
+	//	for (int i = iFrom; i != iTo; i-=dir) {
+	//		this[i] = this[i-dir];
+	//	}
+	//	this[iTo] = target;
+	//	OnCollectionChanged(new NotifyCollectionChangedEventArgs(
+	//		NotifyCollectionChangedAction.Move, target, iTo, iFrom));
+	//}
 
 	protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e) =>
 		CollectionChanged?.Invoke(this, e);

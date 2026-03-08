@@ -24,7 +24,7 @@ public partial class TabLog : UserControl {
 		};
 
 		cmd_clear.Click += (a, b) => {
-			MainHolder.Inst.logSource.Clear();
+			MainHolder.Inst.logSource.ClearNotify();
 		};
 
 

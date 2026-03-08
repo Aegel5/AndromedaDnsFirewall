@@ -10,7 +10,6 @@ static class Ext_DateTime {
 	public static DateTime ToLocalQuick(this DateTime dt) {
 		if (dt.Kind != DateTimeKind.Utc) throw new Exception("need utc");
 		return new DateTime(dt.Ticks + delt.Ticks, DateTimeKind.Local);
-
 	}
 	static TimeSpan delt;
 	static Ext_DateTime() {

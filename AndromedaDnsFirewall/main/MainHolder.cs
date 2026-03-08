@@ -94,7 +94,7 @@ internal class MainHolder {
 					return LogType.Allowed;
 				}
 
-				logitem = new LogItem(name, quest.Type, quest.Class) { type = calcLogType() };
+				logitem = new LogItem(name, quest.Type, quest.Class, calcLogType());
 
 				if (logitem.type
 					is LogType.BlockedByPublicList
@@ -106,33 +106,47 @@ internal class MainHolder {
 				}
 
 				bool edited = false;
+				//bool was_move = false;
 
 				for (int iLogs = 0; iLogs < Math.Min(6, logSource.Count); iLogs++) {
 					var cur = logSource[iLogs];
-					if (iLogs > 0 && (logitem.dt - cur.dt).TotalSeconds > 10) 
+					if (iLogs > 0 && (logitem.dt - cur.dt).Duration().TotalSeconds > 10) 
 						break;
 					if (cur.IsSame(logitem)) {
 						cur.count++;
-						cur.dt = logitem.dt;
+						//cur.dt = logitem.dt;
 						cur.AddQuestInfo(logitem);
-						if (iLogs == 0) {
-							logSource.NotifyUpdated(0);
-						} else{
-							logSource.Move(iLogs, 0);
-						} 
+						logSource.NotifyUpdated(iLogs);
+						//if (iLogs == 0) {
+						//	logSource.NotifyUpdated(0);
+						//} else{
+						//	//was_move = true;
+						//	logSource.NotifyUpdated(iLogs);
+						//	//logSource.Move(iLogs, 0);
+						//} 
 						edited = true;
 						break;
 					}
 				}
 
 				if (!edited) {
-					logSource.PushFront(logitem);
+					//if (logSource.Count >= 1 && logitem.IsSame(logSource[0])) {
+					//	int k = 0;
+					//}
+					logSource.PushFrontNotify(logitem);
 					while (logSource.Count > 150) {
-						logSource.PopBack();
+						logSource.PopBackNofity();
 					}
+
 				}
 
 				logChangeId++;
+
+				//for (int i = 0; i < logSource.Count-2; i++) {
+				//	if (logSource[i].IsSame(logSource[i + 1])){
+				//		int k = 0;
+				//	}
+				//}
 
 				Log.Info($"New log entry: {logitem}");
 			}

@@ -25,6 +25,7 @@ record LogItem {
 	public void AddQuestInfo(LogItem other) {
 		if (questInfos.Contains(other.questInfos[0])) return;
 		questInfos.Add(other.questInfos[0]);
+		questInfos.Sort();
 	}
 
 	public LogType type;
@@ -33,7 +34,8 @@ record LogItem {
 	public int count = 1;
 	public DateTime dt;
 
-	public LogItem(string host, DnsType t, DnsClass c) {
+	public LogItem(string host, DnsType t, DnsClass c, LogType type) {
+		this.type = type;
 		this.host = host;
 		questInfos.Add(BuildQuestInfo(t, c));
 		dt = DateTime.UtcNow;
@@ -61,7 +63,7 @@ record LogItem {
 	}
 
 	string QuestsToString() {
-		return string.Join(", ", questInfos);
+		return string.Join(" / ", questInfos);
 	}
 
 	public override string ToString() {
