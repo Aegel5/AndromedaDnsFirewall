@@ -76,7 +76,7 @@ internal class MainHolder {
 			for (int iQuest = req.Questions.Count - 1; iQuest >= 0; iQuest--) {
 				var quest = req.Questions[iQuest];
 				//fortest = quest;
-				var name = quest.Name.ToString();
+				var name = quest.Name.ToCanonical().ToString();
 
 				UserLists.list.TryGetValue(name, out RuleBlockType block);
 
