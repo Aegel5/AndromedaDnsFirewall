@@ -106,7 +106,6 @@ internal class MainHolder {
 				}
 
 				bool edited = false;
-				//bool was_move = false;
 
 				for (int iLogs = 0; iLogs < Math.Min(6, logSource.Count); iLogs++) {
 					var cur = logSource[iLogs];
@@ -114,7 +113,7 @@ internal class MainHolder {
 						break;
 					if (cur.IsSame(logitem)) {
 						cur.count++;
-						cur.dt = DateTime.UtcNow;
+						cur.dt = logitem.dt;
 						cur.AddQuestInfo(logitem);
 						logSource.NotifyUpdated(iLogs);
 						logitem = cur;
@@ -124,7 +123,11 @@ internal class MainHolder {
 				}
 
 				if (!edited) {
-					logitem.dt = DateTime.UtcNow;
+					//for (int i = 0; i < logSource.Count; i++) {
+					//	if (logitem.IsSame(logSource[i])) {
+					//		int k = 0;
+					//	}
+					//}
 					logSource.PushFrontNotify(logitem);
 					while (logSource.Count > 150) {
 						logSource.PopBackNofity();

@@ -38,7 +38,7 @@ record LogItem {
 		this.type = type;
 		this.host = host;
 		questInfos.Add(BuildQuestInfo(t, c));
-		//dt = DateTime.UtcNow;
+		dt = DateTime.UtcNow;
 	}
 
 	static string BuildQuestInfo(DnsType t, DnsClass c) {
