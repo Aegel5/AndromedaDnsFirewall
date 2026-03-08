@@ -16,47 +16,7 @@ class CacheItem {
 	//int next;
 }
 
-record LogItem {
-	public bool IsSame(LogItem other) {
-		return type == other.type && elem == other.elem;
-	}
-	public LogType type;
-	public DnsElem elem;
-	public int count = 1;
-	public DateTime dt;
 
-	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.Parse("#7792d1"));
-	static IImmutableSolidColorBrush c_block2 = new ImmutableSolidColorBrush(Color.Parse("#edcc9d"));
-
-	public IBrush? Background {
-		get {
-			return type switch {
-				LogType.BlockedByPublicList => c_block1,
-				LogType.BlockedByUserList => c_block2,
-				LogType.AllowedByUserList => Brushes.GreenYellow,
-				LogType.Allow_PublicBlockListNotReady => Brushes.Gray,
-				LogType.Block_PublicBlockListNotReady => Brushes.Gray,
-				_ => default
-			};
-		}
-	}
-
-	public override string ToString() {
-		return $"{dt.ToLocalQuick()} {type} {(count==1?"":$"({count})")} {elem.data} {elem.type}";
-	}
-
-}
-
-enum LogType {
-	Blocked,
-	Allowed,
-	BlockedByUserList,
-	AllowedByUserList,
-	Error,
-	BlockedByPublicList,
-	Allow_PublicBlockListNotReady,
-	Block_PublicBlockListNotReady
-}
 
 //record RuleRec (string name, bool block);
 
@@ -70,9 +30,6 @@ enum WorkMode {
 
 class StoreCache {
 	public Dictionary<string, CacheItem> cacheLst = new();
-}
-
-record DnsElem(DnsType type, DnsClass cls, string data) {
 }
 
 internal class MainHolder {
@@ -108,17 +65,14 @@ internal class MainHolder {
 			var req = new Message();
 			req.Read(dnsItem.req);
 			reqId = req.Id;
-			bool wasRemoved = false;
+			bool wasBlocked = false;
 
 			Question fortest = null;
 
-			for (int i = req.Questions.Count - 1; i >= 0; i--) {
-				var quest = req.Questions[i];
+			for (int iQuest = req.Questions.Count - 1; iQuest >= 0; iQuest--) {
+				var quest = req.Questions[iQuest];
 				fortest = quest;
 				var name = quest.Name.ToString();
-				var dnsElem = new DnsElem(quest.Type, quest.Class, name);
-
-				logitem = new LogItem { type = LogType.Blocked, elem = dnsElem };
 
 				UserLists.list.TryGetValue(name, out RuleBlockType block);
 
@@ -140,27 +94,34 @@ internal class MainHolder {
 					return LogType.Allowed;
 				}
 
-				logitem = new LogItem { type = calcLogType(), elem = dnsElem, dt = DateTime.UtcNow };
+				logitem = new LogItem(name, quest.Type, quest.Class) { type = calcLogType() };
 
 				if (logitem.type
 					is LogType.BlockedByPublicList
 					or LogType.BlockedByUserList
 					or LogType.Block_PublicBlockListNotReady
 					) {
-					req.Questions.RemoveAt(i);
-					wasRemoved = true;
+					req.Questions.RemoveAt(iQuest);
+					wasBlocked = true;
 				}
 
 				bool edited = false;
 
-				if (logSource.Count != 0) {
-					var first = logSource.Front;
-					if (first.IsSame(logitem)) {
-						first.count += 1;
-						first.dt = DateTime.UtcNow;
-						logitem = first;
-						logSource.FrontUpdated();
+				for (int iLogs = 0; iLogs < Math.Min(6, logSource.Count); iLogs++) {
+					var cur = logSource[iLogs];
+					if (iLogs > 0 && (logitem.dt - cur.dt).TotalSeconds > 10) 
+						break;
+					if (cur.IsSame(logitem)) {
+						cur.count++;
+						cur.dt = logitem.dt;
+						cur.AddQuestInfo(logitem);
+						if (iLogs == 0) {
+							logSource.NotifyUpdated(0);
+						} else{
+							logSource.Move(iLogs, 0);
+						} 
 						edited = true;
+						break;
 					}
 				}
 
@@ -174,13 +135,11 @@ internal class MainHolder {
 				logChangeId++;
 
 				Log.Info($"New log entry: {logitem}");
-
-
 			}
 
 			LazyMessage lazy = new() { msg = req };
 
-			if (!wasRemoved) {
+			if (!wasBlocked) {
 				lazy.buf = dnsItem.req; // optimize serialize
 			}
 

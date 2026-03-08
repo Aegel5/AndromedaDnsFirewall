@@ -12,14 +12,14 @@ public partial class TabLog : UserControl {
 		cmd_block.Click += (a, b) => {
 			var cur = (LogItem)ge_logs.SelectedItem;
 			if (cur == null) return;
-			UserLists.Block(cur.elem.data);
+			UserLists.Block(cur.host);
 			UserBlockTab.Inst.Update();
 
 		};
 		cmd_allow.Click += (a, b) => {
 			var cur = (LogItem)ge_logs.SelectedItem;
 			if (cur == null) return;
-			UserLists.Allow(cur.elem.data);
+			UserLists.Allow(cur.host);
 			UserBlockTab.Inst.Update();
 		};
 

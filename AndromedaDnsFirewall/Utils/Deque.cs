@@ -9,7 +9,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-public class Deque<T> : IEnumerable<T>, IList<T> {
+public class Deque<T> : IEnumerable<T>, IList<T>, IList {
+		
     private int _offset, _mask;
     private T[] _buffer;
     public Deque() : this(16) { }
@@ -40,9 +41,9 @@ public class Deque<T> : IEnumerable<T>, IList<T> {
     [MethodImpl(256)] ref T get(int i) => ref _buffer[(_offset + i) & _mask];
     public void PushBack(T item) { if (Count == _buffer.Length) Extend();  get(Count++) = item; }
     public void Add(T item) { PushBack(item); }
-    public T PopBack() { Debug.Assert(Count > 0); return get(--Count); }
+    virtual public T PopBack() { Debug.Assert(Count > 0); return get(--Count); }
 
-    public void PushFront(T item) {
+	virtual public void PushFront(T item) {
         if (Count == _buffer.Length) Extend();
         Count++;
         _buffer[(--_offset) & _mask] = item;
@@ -85,10 +86,17 @@ public class Deque<T> : IEnumerable<T>, IList<T> {
 
 	public bool IsReadOnly => false;
 
+	public bool IsFixedSize => false;
+
+	public bool IsSynchronized => false;
+
+	public object SyncRoot => this;
+
+	object? IList.this[int index] { get => this[index]; set => get(index) = this[index] = (T)value!; }
 	T IList<T>.this[int index] { get => get(index); set => get(index)=value; }
 
 	public ref T this[int i] => ref get(i);
-    public void Clear() { Count = 0; }
+    virtual public void Clear() { Count = 0; }
 
     public void Insert(int index, T item) {
         Debug.Assert(0 <= index && index <= Count);
@@ -156,6 +164,34 @@ public class Deque<T> : IEnumerable<T>, IList<T> {
 			return true;
 		}
 		return false;
+	}
+
+	public int Add(object? value) {
+		Add((T)value!);
+		return Count - 1;
+	}
+
+	public bool Contains(object? value) {
+		return Contains((T)value!);
+	}
+
+	public int IndexOf(object? value) {
+		return IndexOf((T)value!);
+	}
+
+	public void Insert(int index, object? value) {
+		Insert(index, (T)value!);
+	}
+
+	public void Remove(object? value) {
+		Remove((T)value!);
+	}
+
+	public void CopyTo(Array array, int index) {
+		for (int i = 0; i < Count; i++) {
+			// Записываем через SetValue (работает медленнее, но универсально)
+			array.SetValue(this[i], index + i);
+		}
 	}
 }
 
