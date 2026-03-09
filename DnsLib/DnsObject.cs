@@ -26,7 +26,7 @@ namespace Makaretu.Dns
         /// <remarks>
         ///   Cloning does not alter the value.
         /// </remarks>
-        public DateTime CreationTime { get; set; } = DateTime.Now;
+        public DateTime CreationTime { get; set; }
 
         /// <summary>
         ///   Length in bytes of the object when serialised.

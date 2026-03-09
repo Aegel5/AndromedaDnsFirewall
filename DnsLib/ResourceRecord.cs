@@ -100,8 +100,9 @@ namespace Makaretu.Dns
         /// </returns>
         public bool IsExpired(DateTime? from = null)
         {
-            var now = from ?? DateTime.Now;
-            return CreationTime + TTL <= now;
+            return false;
+            //var now = from ?? DateTime.Now;
+            //return CreationTime + TTL <= now;
         }
 
         /// <summary>
