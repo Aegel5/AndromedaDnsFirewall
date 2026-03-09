@@ -18,14 +18,21 @@ enum LogType {
 	Block_PublicBlockListNotReady
 }
 
+
 record LogItem {
+	int fromCacheCnt;
 	public bool IsSame(LogItem other) {
 		return type == other.type && host == other.host;
 	}
-	public void AddQuestInfo(LogItem other) {
+	public void UnionWith(LogItem other) {
+		fromCacheCnt += other.fromCacheCnt;
 		if (questInfos.Contains(other.questInfos[0])) return;
 		questInfos.Add(other.questInfos[0]);
 		questInfos.Sort();
+	}
+
+	public void SetFromCache() {
+		fromCacheCnt++;
 	}
 
 	public LogType type;
@@ -62,12 +69,10 @@ record LogItem {
 		}
 	}
 
-	string QuestsToString() {
-		return string.Join(" / ", questInfos);
-	}
-
 	public override string ToString() {
-		return $"{dt.ToLocalQuick()} {type} {(count == 1 ? "" : $"({count})")} {host} {QuestsToString()}";
+		var q = string.Join(" / ", questInfos);
+		var C = fromCacheCnt == count ? " CACHE" : "";
+		return $"{dt.ToLocalQuick()} {type} {(count == 1 ? "" : $"({count})")} {host} {q}{C}";
 	}
 
 }

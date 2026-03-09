@@ -52,7 +52,8 @@ internal class MainHolder {
 	async void ProcessRequest(ServerItem dnsItem) {
 
 		ushort reqId = 0;
-		LogItem logitem = null;
+		LogItem logitem_last = null;
+		int logitem_indexLast = 0;
 
 		try {
 
@@ -98,9 +99,9 @@ internal class MainHolder {
 					return LogType.Allowed;
 				}
 
-				logitem = new LogItem(name, quest.Type, quest.Class, calcLogType());
+				logitem_last = new LogItem(name, quest.Type, quest.Class, calcLogType());
 
-				if (logitem.type
+				if (logitem_last.type
 					is LogType.BlockedByPublicList
 					or LogType.BlockedByUserList
 					or LogType.Block_PublicBlockListNotReady
@@ -111,17 +112,18 @@ internal class MainHolder {
 
 				bool edited = false;
 
-				for (int iLogs = 0; iLogs < Math.Min(6, logSource.Count); iLogs++) {
-					var cur = logSource[iLogs];
-					if (iLogs > 0 && (logitem.dt - cur.dt).Duration().TotalSeconds > 10) 
+				for (int iLog = 0; iLog < Math.Min(6, logSource.Count); iLog++) {
+					var cur = logSource[iLog];
+					if (iLog > 0 && (logitem_last.dt - cur.dt).Duration().TotalSeconds > 10) 
 						break;
-					if (cur.IsSame(logitem)) {
+					if (cur.IsSame(logitem_last)) {
 						cur.count++;
-						cur.dt = logitem.dt;
-						cur.AddQuestInfo(logitem);
-						logSource.NotifyUpdated(iLogs);
-						logitem = cur;
+						cur.dt = logitem_last.dt;
+						cur.UnionWith(logitem_last);
+						logSource.NotifyUpdated(iLog);
+						logitem_last = cur;
 						edited = true;
+						logitem_indexLast = iLog;
 						break;
 					}
 				}
@@ -132,7 +134,7 @@ internal class MainHolder {
 					//		int k = 0;
 					//	}
 					//}
-					logSource.PushFrontNotify(logitem);
+					logSource.PushFrontNotify(logitem_last);
 					while (logSource.Count > 150) {
 						logSource.PopBackNofity();
 					}
@@ -140,39 +142,38 @@ internal class MainHolder {
 
 				logChangeId++;
 
-				Log.Info($"New log entry: {logitem}");
+				Log.Info($"New log entry: {logitem_last}");
 			}
 
 			LazyMessage lazy = new(req);
 
 			if (!wasBlocked) {
-				lazy.buf = dnsItem.req; // optimize serialize
+				lazy.Buf = dnsItem.req; // optimize serialize
 			}
 
 
 			if (req.Questions.Any()) {
-				var lazyres = await DnsResolver.Inst.ResolveWithCache(lazy);
-				//var q = req.Questions.FirstOrDefault(x => x.Type == DnsType.AAAA);
-				//if (q != null) {
-				//	var msg = lazyres.MsgGet;
-				//	if(msg.Answers.Count != 0){
-				//		int k = 0; 
-				//	}
-				//}
+				var (lazyres, fromCache) = await DnsResolver.Inst.ResolveWithCache(lazy);
+				if (fromCache && logitem_last != null) {
+					// если from cache, значит await до сих пор не было, а значит индекс все еще валиден
+					// не очень хорошо полагаться на это, но ладно.
+					logitem_last.SetFromCache();
+					logSource.NotifyUpdated(logitem_indexLast);
+				}
+
 				dnsItem.answ = lazyres.Buf;
 			} else {
-				Message msg = new() { Id = reqId };
-				msg.Status = MessageStatus.Refused; // nobody check this :(
-													//msg.Answers.Add(new CNAMERecord() { Name = fortest.Name, Target = fortest.Name });
-													//msg.Answers.Add(new ARecord() { Name = fortest.Name, Address = IPAddress.Parse("127.0.0.1"), TTL=7.sec() }); // todo
+				Message msg = req.CreateResponse();
+				msg.Status = MessageStatus.Refused; 
+				//msg.Answers.Add(new ARecord() { Name = fortest.Name, Address = IPAddress.Parse("127.0.0.1"), TTL=7.sec() }); // todo
 				dnsItem.answ = msg.ToByteArray();
 			}
 
 
 		} catch (Exception ex) {
 			Log.Err(ex);
-			if (logitem != null) {
-				logitem.type = LogType.Exception;
+			if (logitem_last != null) {
+				logitem_last.type = LogType.Exception;
 			}
 		} finally {
 			if (dnsItem.answ == null) {

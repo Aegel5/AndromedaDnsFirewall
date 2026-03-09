@@ -166,7 +166,7 @@ internal class DnsResolver {
 	long cnt_all = 1;
 	double cache_prc => cnt_from_cache / (double)cnt_all;
 
-	async public Task<LazyMessage> ResolveWithCache(LazyMessage msg) {
+	async public Task<(LazyMessage,bool fromCache)> ResolveWithCache(LazyMessage msg) {
 
 		cnt_all++;
 
@@ -186,7 +186,7 @@ internal class DnsResolver {
 
 		if (host_cache == null) {
 			var simple_res = new LazyMessage(await resolveInt(NextServ, msg.Buf));
-			return simple_res;
+			return (simple_res,false);
 		}
 
 		var cached = cacheIp.Get(host_cache, type);
@@ -199,7 +199,7 @@ internal class DnsResolver {
 				item.CreationTime = now; // обновим время (прямо в кеше).
 			}
 			var from_cache = new LazyMessage (response);
-			return from_cache;
+			return (from_cache, true);
 		}
 
 		var res = new LazyMessage ( await resolveInt(NextServ, msg.Buf) );
@@ -207,7 +207,7 @@ internal class DnsResolver {
 		// Добавляем в кеш.
 		cacheIp.Add(host_cache, type, res.Msg.Answers);
 
-		return res;
+		return (res, false);
 	}
 
 
