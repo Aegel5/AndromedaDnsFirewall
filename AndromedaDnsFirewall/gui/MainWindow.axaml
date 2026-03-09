@@ -8,11 +8,9 @@
         Title="AndromedaDnsFirewall">
 	<DockPanel>
 		<Menu DockPanel.Dock="Top">
-			<MenuItem Header="File"></MenuItem>
-			<MenuItem Header="Сервис"></MenuItem>
-			<MenuItem Name="ge_cur_block" Header="Блокировать по спискам">
-				<MenuItem Name="ge_block" Header="Блокировать по спискам"></MenuItem>
-				<MenuItem Name="ge_allow" Header="Разрешить все"></MenuItem>
+			<MenuItem Name="ge_cur_block" Header="Block and cache">
+				<MenuItem Name="ge_block" Header="Block and cache"></MenuItem>
+				<MenuItem Name="ge_allow" Header="Bypass"></MenuItem>
 			</MenuItem>
 		</Menu>
 		<TabControl >

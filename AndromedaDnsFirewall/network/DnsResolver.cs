@@ -203,6 +203,9 @@ internal class DnsResolver {
 		}
 
 		var res = new LazyMessage ( await resolveInt(NextServ, msg.Buf) );
+		if ((int)msg.Msg.Questions[0].Type == 65 && res.Msg.Answers.Count != 0 && res.Msg.Answers[0].Type != DnsType.CNAME) {
+			int k = 0;
+		}
 
 		// Добавляем в кеш.
 		cacheIp.Add(host_cache, type, res.Msg.Answers);
