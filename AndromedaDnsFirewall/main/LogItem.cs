@@ -20,16 +20,25 @@ enum LogType {
 
 
 record LogItem {
+
+	int questCount = 1;
+
 	int fromCacheCnt;
 	public bool IsSame(LogItem other) {
 		return type == other.type && host == other.host;
 	}
 	public void UnionWith(LogItem other) {
+		SetQuestCnt(other.questCount);
 		fromCacheCnt += other.fromCacheCnt;
 		if (questInfos.Contains(other.questInfos[0])) return;
 		questInfos.Add(other.questInfos[0]);
 		questInfos.Sort();
 	}
+
+	public void SetQuestCnt(int cnt) {
+		questCount = Math.Max(questCount, cnt);
+	}
+
 
 	public void SetFromCache() {
 		fromCacheCnt++;
@@ -70,11 +79,15 @@ record LogItem {
 	}
 
 	public override string ToString() {
-		var q = string.Join(" / ", questInfos);
+		var multi = "";
+		if (questCount > 1) {
+			multi = $" MULTI({multi})";
+		}
+		var types = string.Join(" / ", questInfos);
 		var cache = "";
 		if (fromCacheCnt == count) cache = " CACHE";
 		else if (fromCacheCnt > 0) cache = $" CACHE({fromCacheCnt})";
-		return $"{dt.ToLocalQuick()} {type} {(count == 1 ? "" : $"({count})")} {host} {q}{cache}";
+		return $"{dt.ToLocalQuick()} {type} {(count == 1 ? "" : $"({count})")} {host} {types}{cache}{multi}";
 	}
 
 }

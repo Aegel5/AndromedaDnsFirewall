@@ -1,8 +1,19 @@
 ﻿using Avalonia.Controls;
+using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace AndromedaDnsFirewall;
 internal class GuiTools {
+
+	public static ICommand CreateCommand(Action act) {
+		return new RelayCommand(act);
+	}
+	public static ICommand CreateCommand(Func<Task> act) {
+		return new AsyncRelayCommand(act);
+	}
+
 	public static async Task<bool> AskQuestion(string quest) {
 		var wnd = SimpleMessageBox.Create(quest);
 		wnd.Title = "Требуется подтверждение";

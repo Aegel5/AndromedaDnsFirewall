@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+  <DebugType>none</DebugType>
+  <DebugSymbols>false</DebugSymbols>
+</PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="SimpleBase" Version="5.6.0" />
   </ItemGroup>

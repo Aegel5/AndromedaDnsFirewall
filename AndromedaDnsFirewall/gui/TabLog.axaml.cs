@@ -27,6 +27,15 @@ public partial class TabLog : UserControl {
 			MainHolder.Inst.logSource.ClearNotify();
 		};
 
+		cmd_copy.Command = GuiTools.CreateCommand(async () => {
+			var cur = (LogItem)ge_logs.SelectedItem;
+			if (cur == null) return;
+			var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+			if (clipboard != null) {
+				await clipboard.SetTextAsync(cur.host);
+			}
+		});
+
 
 		ge_logs.ItemsSource = MainHolder.Inst.logSource;
 	}

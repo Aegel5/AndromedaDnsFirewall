@@ -65,11 +65,11 @@ internal class MainHolder {
 
 			var lazy_req = new LazyMessage(dnsItem.req);
 			reqId = lazy_req.Msg.Id;
-			bool wasEdited = false;
+			bool wasRemovedQuestions = false;
+			int qustions = lazy_req.Msg.Questions.Count;
 
-			for (int iQuest = lazy_req.Msg.Questions.Count - 1; iQuest >= 0; iQuest--) {
+			for (int iQuest = qustions - 1; iQuest >= 0; iQuest--) {
 				var quest = lazy_req.Msg.Questions[iQuest];
-				//fortest = quest;
 				var name = quest.Name.ToCanonical().ToString();
 
 				UserLists.list.TryGetValue(name, out RuleBlockType block);
@@ -93,6 +93,7 @@ internal class MainHolder {
 				}
 
 				logitem_last = new LogItem(name, quest.Type, quest.Class, calcLogType());
+				logitem_last.SetQuestCnt(qustions);
 
 				if (logitem_last.type
 					is LogType.BlockedByPublicList
@@ -100,7 +101,7 @@ internal class MainHolder {
 					or LogType.Block_PublicBlockListNotReady
 					) {
 					lazy_req.Msg.Questions.RemoveAt(iQuest);
-					wasEdited = true;
+					wasRemovedQuestions = true;
 				}
 
 				bool edited = false;
@@ -122,11 +123,6 @@ internal class MainHolder {
 				}
 
 				if (!edited) {
-					//for (int i = 0; i < logSource.Count; i++) {
-					//	if (logitem.IsSame(logSource[i])) {
-					//		int k = 0;
-					//	}
-					//}
 					logSource.PushFrontNotify(logitem_last);
 					while (logSource.Count > 150) {
 						logSource.PopBackNofity();
@@ -138,7 +134,7 @@ internal class MainHolder {
 				Log.Info($"New log entry: {logitem_last}");
 			}
 
-			if (wasEdited) {
+			if (wasRemovedQuestions) {
 				lazy_req.ClearBuf(); // были изменения, буфер больше не валиден, нужно пересоздавать.
 			}
 
