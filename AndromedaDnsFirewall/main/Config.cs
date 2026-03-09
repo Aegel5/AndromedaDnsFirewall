@@ -74,6 +74,8 @@ class Config {
 		];
 	public string ServerAddress { get; set; } = "127.0.0.1:53";
 
+	public int IpCacheTimeMinutes { get; set; } = 15;
+
 	[JsonIgnore]
 	public WorkMode mode { get; set; } = WorkMode.AllExceptBlockList;
 	static public WorkMode Mode => Inst.mode;

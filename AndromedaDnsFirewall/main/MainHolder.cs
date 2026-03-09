@@ -143,7 +143,7 @@ internal class MainHolder {
 				Log.Info($"New log entry: {logitem}");
 			}
 
-			LazyMessage lazy = new() { msg = req };
+			LazyMessage lazy = new(req);
 
 			if (!wasBlocked) {
 				lazy.buf = dnsItem.req; // optimize serialize

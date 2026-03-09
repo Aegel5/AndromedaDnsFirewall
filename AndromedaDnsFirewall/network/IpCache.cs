@@ -4,17 +4,18 @@ using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using CacheData = System.Collections.Generic.List<Makaretu.Dns.ResourceRecord>;
 
 namespace AndromedaDnsFirewall.network; 
 internal class IpCache {
 
-	Deque<(string s, TimePoint t)> items = new();
-	Dictionary<string, byte[]> dict = new();
+	Deque<((string, int) key, TimePoint time)> items = new();
+	Dictionary<(string,int), CacheData> dict = new();
 
 	void DelOld() {
-		while (items.Count > 0 && (items.Count > 10000 || items[0].t.DeltToNow > 120.min())) {
+		while (!items.IsEmpty && (items.Count > 5000 || items.Front.time.DeltToNow > Config.Inst.IpCacheTimeMinutes.min())) {
 			var it = items.PopFront();
-			if (!dict.Remove(it.s)) {
+			if (!dict.Remove(it.key)) {
 				throw new Exception("bad implementation");
 			}
 		}
@@ -22,22 +23,27 @@ internal class IpCache {
 			throw new Exception("bad implementation");
 	}
 
-	public void Add(string host, byte[] arr) {
-		if (arr.Length == 0) throw new Exception("must be > 0");
+	public void Clear() {
+		items.Clear();
+		dict.Clear();
+	}
+
+	public void Add(string host, int type, CacheData arr) {
 		DelOld();
-		ref var entry = ref CollectionsMarshal.GetValueRefOrAddDefault(dict, host, out bool exists);
+		ref var entry = ref CollectionsMarshal.GetValueRefOrAddDefault(dict, (host, type), out bool exists);
 		entry = arr;
 		if (exists) {
+			// если запись существует, время будет старое, но
 			// так как мы проверяем кеш перед обращением, то сюда мы можем попасть только из-за await и одновременных запросов по одному и тоже же хосту
-			// это крайне редко и не критично
+			// поэтому не критично
 			int k = 0;
 		} else {
-			items.Add((host, TimePoint.Now));
+			items.Add(((host, type), TimePoint.Now));
 		}
 	}
-	public byte[]? Get(string host) {
+	public CacheData? Get(string host, int type) {
 		DelOld();
-		dict.TryGetValue(host, out var arr);
+		dict.TryGetValue((host, type), out var arr);
 		return arr;
 	}
 }
