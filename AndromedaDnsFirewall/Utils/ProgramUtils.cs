@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 
 namespace AndromedaDnsFirewall;
+
 public static class ProgramUtils {
 	public static string TypeSession => IsDebug ? "DEBUG" : "RELEASE";
 
@@ -11,7 +12,7 @@ public static class ProgramUtils {
 	static public bool IsDebug {
 		get {
 #if DEBUG
-            return true;
+			return true;
 #else
 			return false;
 #endif

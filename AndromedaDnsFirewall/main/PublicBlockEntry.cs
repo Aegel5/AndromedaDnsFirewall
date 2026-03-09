@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text.Json.Serialization;
 namespace AndromedaDnsFirewall;
+
+
 internal partial class PublicBlockEntry : ObservableObject {
 
 	public PublicBlockEntry(string url) {

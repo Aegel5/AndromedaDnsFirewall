@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 
 namespace AndromedaDnsFirewall;
+
 internal enum RuleBlockType {
 	Null = 0,
 	Block,

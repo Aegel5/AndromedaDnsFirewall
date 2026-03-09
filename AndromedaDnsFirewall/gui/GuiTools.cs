@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace AndromedaDnsFirewall;
+
 internal class GuiTools {
 
 	public static ICommand CreateCommand(Action act) {

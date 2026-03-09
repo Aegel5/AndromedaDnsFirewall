@@ -12,14 +12,14 @@ public partial class TabLog : UserControl {
 		cmd_block.Click += (a, b) => {
 			var cur = (LogItem)ge_logs.SelectedItem;
 			if (cur == null) return;
-			UserLists.Block(cur.host);
+			UserLists.Block(cur.domain);
 			UserBlockTab.Inst.Update();
 
 		};
 		cmd_allow.Click += (a, b) => {
 			var cur = (LogItem)ge_logs.SelectedItem;
 			if (cur == null) return;
-			UserLists.Allow(cur.host);
+			UserLists.Allow(cur.domain);
 			UserBlockTab.Inst.Update();
 		};
 
@@ -32,7 +32,7 @@ public partial class TabLog : UserControl {
 			if (cur == null) return;
 			var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
 			if (clipboard != null) {
-				await clipboard.SetTextAsync(cur.host);
+				await clipboard.SetTextAsync(cur.domain);
 			}
 		});
 

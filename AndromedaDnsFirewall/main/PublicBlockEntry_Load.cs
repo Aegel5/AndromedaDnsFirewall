@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall;
+
 internal partial class PublicBlockEntry {
 
 	public HashSet<string> cache = new();

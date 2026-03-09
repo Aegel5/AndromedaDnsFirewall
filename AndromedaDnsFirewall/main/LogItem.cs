@@ -3,7 +3,7 @@ using Avalonia.Media.Immutable;
 using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace AndromedaDnsFirewall;
 
@@ -13,53 +13,49 @@ enum LogType {
 	BlockedByUserList,
 	AllowedByUserList,
 	Exception,
+	BadRequest,
 	BlockedByPublicList,
-	Allow_PublicBlockListNotReady,
+	//Allow_PublicBlockListNotReady,
 	Block_PublicBlockListNotReady
 }
 
 
 record LogItem {
 
-	int questCount = 1;
+	public LogItem() {
+		dt = DateTime.UtcNow;
+	}
 
 	int fromCacheCnt;
 	public bool IsSame(LogItem other) {
-		return type == other.type && host == other.host;
+		return log_type == other.log_type && domain == other.domain;
 	}
-	public void UnionWith(LogItem other) {
-		SetQuestCnt(other.questCount);
+	public void OverwriteWith(LogItem other) {
+		dt = other.dt;
+		count += other.count;
 		fromCacheCnt += other.fromCacheCnt;
-		if (questInfos.Contains(other.questInfos[0])) return;
-		questInfos.Add(other.questInfos[0]);
-		questInfos.Sort();
+		if (other.questInfos.Count > 1) throw new Exception("bad");
+		if (!questInfos.Contains(other.questInfos[0])) {
+			questInfos.Add(other.questInfos[0]);
+			questInfos.Sort();
+		}
 	}
-
-	public void SetQuestCnt(int cnt) {
-		questCount = Math.Max(questCount, cnt);
-	}
-
 
 	public void SetFromCache() {
 		fromCacheCnt++;
 	}
 
-	public LogType type;
-	public string host = "unknown";
-	List<string> questInfos = new();
+	public string ErrorInfo = "";
+
+	public LogType log_type;
+	public string domain = "";
+	List<int> questInfos = new();
 	public int count = 1;
 	public DateTime dt;
 
-	public LogItem(string host, DnsType t, DnsClass c, LogType type) {
-		this.type = type;
-		this.host = host;
-		questInfos.Add(BuildQuestInfo(t, c));
-		dt = DateTime.UtcNow;
-	}
-
-	static string BuildQuestInfo(DnsType t, DnsClass c) {
-		if (c == DnsClass.IN) return t.ToString();
-		return $"{t}_{c}";
+	public void SetReqType(int t) {
+		questInfos.Clear();
+		questInfos.Add(t);
 	}
 
 	static IImmutableSolidColorBrush c_block1 = new ImmutableSolidColorBrush(Color.Parse("#7792d1"));
@@ -67,11 +63,11 @@ record LogItem {
 
 	public IBrush? Background {
 		get {
-			return type switch {
+			return log_type switch {
 				LogType.BlockedByPublicList => c_block1,
 				LogType.BlockedByUserList => c_block2,
 				LogType.AllowedByUserList => Brushes.GreenYellow,
-				LogType.Allow_PublicBlockListNotReady => Brushes.Gray,
+				//LogType.Allow_PublicBlockListNotReady => Brushes.Gray,
 				LogType.Block_PublicBlockListNotReady => Brushes.Gray,
 				_ => default
 			};
@@ -79,15 +75,12 @@ record LogItem {
 	}
 
 	public override string ToString() {
-		var multi = "";
-		if (questCount > 1) {
-			multi = $" MULTI({multi})";
-		}
-		var types = string.Join(" / ", questInfos);
+		var E = ErrorInfo == "" ? "" : " " + ErrorInfo;
+		var types = string.Join(" / ", questInfos.Select(x => x switch { 1 => "A", 28 => "AAAA", _ => x.ToString() }));
 		var cache = "";
 		if (fromCacheCnt == count) cache = " CACHE";
 		else if (fromCacheCnt > 0) cache = $" CACHE({fromCacheCnt})";
-		return $"{dt.ToLocalQuick()} {type} {(count == 1 ? "" : $"({count})")} {host} {types}{cache}{multi}";
+		return $"{dt.ToLocalQuick()} {log_type} {(count == 1 ? "" : $"({count})")} {domain} {types}{cache}{E}";
 	}
 
 }

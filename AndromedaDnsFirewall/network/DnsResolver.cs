@@ -13,7 +13,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AndromedaDnsFirewall.dns_server; 
+namespace AndromedaDnsFirewall.dns_server;
 
 
 internal class DnsResolver {
@@ -156,7 +156,7 @@ internal class DnsResolver {
 	}
 
 	// Полное отсутствие парсинга сообщения и как следствие кеша.
-	async public Task<byte[]> RawResolveBypass(byte[] query) { 
+	async public Task<byte[]> RawResolveBypass(byte[] query) {
 		return await resolveInt(NextServ, query);
 	}
 
@@ -167,49 +167,26 @@ internal class DnsResolver {
 	long cnt_all = 1;
 	double cache_prc => cnt_from_cache / (double)cnt_all;
 
-	async public Task<(LazyMessage,bool fromCache)> ResolveWithCache(LazyMessage msg) {
+	async public Task<(byte[], bool fromCache)> ResolveWithCache(byte[] req, string domain, int type) {
 
 		cnt_all++;
 
-		// Проверим кеш. Для простоты (99% случаев) проверяем только если кол-во вопросов = 1.
-
-		string host_cache = null;
-		int type = 0;
-
 		if (Config.Inst.IpCacheTimeMinutes <= 0) {
 			cacheIp.Clear();
-		}
-		else if (msg.Msg.Questions.Count == 1) {
-			var q = msg.Msg.Questions[0];
-			host_cache = q.Name.ToCanonical().ToString();
-			type = (int)q.Type;
-		}
-
-		if (host_cache == null) {
-			var simple_res = new LazyMessage(await resolveInt(NextServ, msg.Buf));
-			return (simple_res,false);
+		}else{
+			var cached = cacheIp.Get(domain, type);
+			if (cached != null) {
+				cnt_from_cache++;
+				var buf = cached.ToArray(); // сделаем копию, так как этот кеш могут использовать другие.
+				DnsSimpleParser.WriteId(buf, DnsSimpleParser.ReadId(req)); // перезапишем Id
+				return (buf, true);
+			}
 		}
 
-		var cached = cacheIp.Get(host_cache, type);
-		if (cached != null) {
-			cnt_from_cache++;
-			//var response = msg.Msg.CreateResponse();
-			//response.Answers = cached;
-			//var from_cache = new LazyMessage (response);
-			//return (from_cache, true);
-			var buf = cached.ToArray(); // сделаем копию, так как этот кеш могут использовать другие.
-			DnsSimpleParser.WriteId(buf, DnsSimpleParser.ReadId(msg.Buf)); // перезапишем Id
-			return (new LazyMessage(buf), true);
-
-		}
-
-		var res = new LazyMessage ( await resolveInt(NextServ, msg.Buf) );
-		//if ((int)msg.Msg.Questions[0].Type == 65 && res.Msg.Answers.Count != 0 && res.Msg.Answers[0].Type != DnsType.CNAME) {
-		//	int k = 0;
-		//}
+		var res = await resolveInt(NextServ, req);
 
 		// Добавляем в кеш
-		cacheIp.Add(host_cache, type, res.Buf);
+		cacheIp.Add(domain, type, res);
 
 		return (res, false);
 	}

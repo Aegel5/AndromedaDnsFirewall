@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace AndromedaDnsFirewall.Utils; 
+namespace AndromedaDnsFirewall.Utils;
+
 internal class ObservableDeque<T> : Deque<T>, INotifyCollectionChanged {
 
 	List<int> indexToUpdate = new();
@@ -60,7 +57,7 @@ internal class ObservableDeque<T> : Deque<T>, INotifyCollectionChanged {
 	}
 
 	public void NotifyUpdated(int i) {
-		if (indexToUpdate.Contains(i)) 
+		if (indexToUpdate.Contains(i))
 			return;
 		indexToUpdate.Add(i);
 	}

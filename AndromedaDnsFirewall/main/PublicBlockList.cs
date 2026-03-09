@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall;
+
 internal class PublicBlockList {
 	static IEnumerable<PublicBlockEntry> records => Config.Inst.PublicBlockLists;
 

@@ -1,9 +1,8 @@
 ﻿using Makaretu.Dns;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace AndromedaDnsFirewall; 
+namespace AndromedaDnsFirewall;
+
 public class LazyMessage {
 
 	public LazyMessage(byte[] buf) {
