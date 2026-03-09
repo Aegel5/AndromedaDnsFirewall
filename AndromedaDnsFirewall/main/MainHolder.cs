@@ -63,19 +63,12 @@ internal class MainHolder {
 				return;
 			}
 
-			var req = new Message();
-			req.Read(dnsItem.req);
-			reqId = req.Id;
-			bool wasBlocked = false;
+			var lazy_req = new LazyMessage(dnsItem.req);
+			reqId = lazy_req.Msg.Id;
+			bool wasEdited = false;
 
-			//Question fortest = null;
-
-			//if (req.Questions.Count > 1) {
-			//	int k = 0;
-			//}
-
-			for (int iQuest = req.Questions.Count - 1; iQuest >= 0; iQuest--) {
-				var quest = req.Questions[iQuest];
+			for (int iQuest = lazy_req.Msg.Questions.Count - 1; iQuest >= 0; iQuest--) {
+				var quest = lazy_req.Msg.Questions[iQuest];
 				//fortest = quest;
 				var name = quest.Name.ToCanonical().ToString();
 
@@ -106,8 +99,8 @@ internal class MainHolder {
 					or LogType.BlockedByUserList
 					or LogType.Block_PublicBlockListNotReady
 					) {
-					req.Questions.RemoveAt(iQuest);
-					wasBlocked = true;
+					lazy_req.Msg.Questions.RemoveAt(iQuest);
+					wasEdited = true;
 				}
 
 				bool edited = false;
@@ -145,15 +138,12 @@ internal class MainHolder {
 				Log.Info($"New log entry: {logitem_last}");
 			}
 
-			LazyMessage lazy = new(req);
-
-			if (!wasBlocked) {
-				lazy.Buf = dnsItem.req; // optimize serialize
+			if (wasEdited) {
+				lazy_req.ClearBuf(); // были изменения, буфер больше не валиден, нужно пересоздавать.
 			}
 
-
-			if (req.Questions.Any()) {
-				var (lazyres, fromCache) = await DnsResolver.Inst.ResolveWithCache(lazy);
+			if (lazy_req.Msg.Questions.Any()) {
+				var (lazyres, fromCache) = await DnsResolver.Inst.ResolveWithCache(lazy_req);
 				if (fromCache && logitem_last != null) {
 					// если from cache, значит await до сих пор не было, а значит индекс все еще валиден
 					// не очень хорошо полагаться на это, но ладно.
@@ -163,13 +153,11 @@ internal class MainHolder {
 
 				dnsItem.answ = lazyres.Buf;
 			} else {
-				Message msg = req.CreateResponse();
+				Message msg = lazy_req.Msg.CreateResponse();
 				msg.Status = MessageStatus.Refused; 
 				//msg.Answers.Add(new ARecord() { Name = fortest.Name, Address = IPAddress.Parse("127.0.0.1"), TTL=7.sec() }); // todo
 				dnsItem.answ = msg.ToByteArray();
 			}
-
-
 		} catch (Exception ex) {
 			Log.Err(ex);
 			if (logitem_last != null) {
@@ -182,7 +170,6 @@ internal class MainHolder {
 			}
 			server.CompleteRequest(dnsItem);
 		}
-
 	}
 
 

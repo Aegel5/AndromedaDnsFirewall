@@ -1,4 +1,5 @@
 ﻿using AndromedaDnsFirewall.network;
+using AndromedaDnsFirewall.Utils;
 using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
@@ -192,23 +193,23 @@ internal class DnsResolver {
 		var cached = cacheIp.Get(host_cache, type);
 		if (cached != null) {
 			cnt_from_cache++;
-			var response = msg.Msg.CreateResponse();
-			response.Answers = cached;
-			var now = DateTime.Now;
-			foreach (var item in cached) {
-				item.CreationTime = now; // обновим время (прямо в кеше).
-			}
-			var from_cache = new LazyMessage (response);
-			return (from_cache, true);
+			//var response = msg.Msg.CreateResponse();
+			//response.Answers = cached;
+			//var from_cache = new LazyMessage (response);
+			//return (from_cache, true);
+			var buf = cached.ToArray(); // сделаем копию, так как этот кеш могут использовать другие.
+			DnsSimpleParser.WriteId(buf, DnsSimpleParser.ReadId(msg.Buf)); // перезапишем Id
+			return (new LazyMessage(buf), true);
+
 		}
 
 		var res = new LazyMessage ( await resolveInt(NextServ, msg.Buf) );
-		if ((int)msg.Msg.Questions[0].Type == 65 && res.Msg.Answers.Count != 0 && res.Msg.Answers[0].Type != DnsType.CNAME) {
-			int k = 0;
-		}
+		//if ((int)msg.Msg.Questions[0].Type == 65 && res.Msg.Answers.Count != 0 && res.Msg.Answers[0].Type != DnsType.CNAME) {
+		//	int k = 0;
+		//}
 
-		// Добавляем в кеш.
-		cacheIp.Add(host_cache, type, res.Msg.Answers);
+		// Добавляем в кеш
+		cacheIp.Add(host_cache, type, res.Buf);
 
 		return (res, false);
 	}

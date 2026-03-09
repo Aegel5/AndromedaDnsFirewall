@@ -33,6 +33,10 @@ public class LazyMessage {
 		}
 	}
 
+	public void ClearBuf() {
+		buf = null;
+	}
+
 	public byte[] Buf {
 		get {
 			if (buf != null)

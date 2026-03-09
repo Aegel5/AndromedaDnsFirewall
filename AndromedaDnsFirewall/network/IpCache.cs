@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
-using CacheData = System.Collections.Generic.List<Makaretu.Dns.ResourceRecord>;
+//using CacheData = System.Collections.Generic.List<Makaretu.Dns.ResourceRecord>;
+using CacheData = byte[];
 
 namespace AndromedaDnsFirewall.network; 
 internal class IpCache {
