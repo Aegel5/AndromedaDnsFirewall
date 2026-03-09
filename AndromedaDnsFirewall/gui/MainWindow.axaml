@@ -14,7 +14,7 @@
 			</MenuItem>
 		</Menu>
 		<TabControl >
-			<TabItem Header="Перехват">
+			<TabItem Header="Dns log">
 				<views:TabLog />
 			</TabItem>
 			<TabItem Header="User block-list">
@@ -23,7 +23,6 @@
 			<TabItem Header="Public block-list">
 				<views:PublicBlockTab />
 			</TabItem>
-			<TabItem Header="Log"></TabItem>
 		</TabControl>
 	</DockPanel>
 </Window>
