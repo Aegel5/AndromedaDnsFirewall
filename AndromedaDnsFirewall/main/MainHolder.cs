@@ -159,7 +159,7 @@ internal class MainHolder {
 				//		int k = 0; 
 				//	}
 				//}
-				dnsItem.answ = lazyres.BuffGet;
+				dnsItem.answ = lazyres.Buf;
 			} else {
 				Message msg = new() { Id = reqId };
 				msg.Status = MessageStatus.Refused; // nobody check this :(

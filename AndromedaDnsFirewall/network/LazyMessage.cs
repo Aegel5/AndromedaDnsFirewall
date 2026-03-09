@@ -13,11 +13,11 @@ public class LazyMessage {
 		this.msg = msg;
 	}
 
-	public Message? msg;
-	public byte[]? buf;
+	Message? msg;
+	byte[]? buf;
 
 
-	public Message MsgGet {
+	public Message Msg {
 		get {
 			if (msg != null)
 				return msg;
@@ -28,9 +28,12 @@ public class LazyMessage {
 			}
 			throw new Exception("no data");
 		}
+		set {
+			msg = value;
+		}
 	}
 
-	public byte[] BuffGet {
+	public byte[] Buf {
 		get {
 			if (buf != null)
 				return buf;
@@ -39,6 +42,9 @@ public class LazyMessage {
 				return buf;
 			}
 			throw new Exception("no data");
+		}
+		set {
+			buf = value;
 		}
 	}
 }

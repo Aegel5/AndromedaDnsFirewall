@@ -178,21 +178,21 @@ internal class DnsResolver {
 		if (Config.Inst.IpCacheTimeMinutes <= 0) {
 			cacheIp.Clear();
 		}
-		else if (msg.MsgGet.Questions.Count == 1) {
-			var q = msg.MsgGet.Questions[0];
+		else if (msg.Msg.Questions.Count == 1) {
+			var q = msg.Msg.Questions[0];
 			host_cache = q.Name.ToCanonical().ToString();
 			type = (int)q.Type;
 		}
 
 		if (host_cache == null) {
-			var simple_res = new LazyMessage(await resolveInt(NextServ, msg.BuffGet));
+			var simple_res = new LazyMessage(await resolveInt(NextServ, msg.Buf));
 			return simple_res;
 		}
 
 		var cached = cacheIp.Get(host_cache, type);
 		if (cached != null) {
 			cnt_from_cache++;
-			var response = msg.MsgGet.CreateResponse();
+			var response = msg.Msg.CreateResponse();
 			response.Answers = cached;
 			var now = DateTime.Now;
 			foreach (var item in cached) {
@@ -202,10 +202,10 @@ internal class DnsResolver {
 			return from_cache;
 		}
 
-		var res = new LazyMessage ( await resolveInt(NextServ, msg.BuffGet) );
+		var res = new LazyMessage ( await resolveInt(NextServ, msg.Buf) );
 
 		// Добавляем в кеш.
-		cacheIp.Add(host_cache, type, res.MsgGet.Answers);
+		cacheIp.Add(host_cache, type, res.Msg.Answers);
 
 		return res;
 	}
