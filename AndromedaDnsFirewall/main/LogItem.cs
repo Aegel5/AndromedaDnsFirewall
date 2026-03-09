@@ -71,8 +71,10 @@ record LogItem {
 
 	public override string ToString() {
 		var q = string.Join(" / ", questInfos);
-		var C = fromCacheCnt == count ? " CACHE" : "";
-		return $"{dt.ToLocalQuick()} {type} {(count == 1 ? "" : $"({count})")} {host} {q}{C}";
+		var cache = "";
+		if (fromCacheCnt == count) cache = " CACHE";
+		else if (fromCacheCnt > 0) cache = $" CACHE({fromCacheCnt})";
+		return $"{dt.ToLocalQuick()} {type} {(count == 1 ? "" : $"({count})")} {host} {q}{cache}";
 	}
 
 }
