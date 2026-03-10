@@ -21,7 +21,7 @@
 				<StackPanel>
 				<CheckBox IsChecked="{Binding Enabled}" >Включен</CheckBox>
 				<TextBox Text="{Binding Url}"></TextBox>
-				<TextBlock Text="{Binding LastUpdHour, StringFormat='LastUpdate: {0} часов назад'}"/>
+				<TextBlock Text="{Binding LastUpdated, StringFormat='Updated: {0}'}"/>
 				<TextBlock Text="{Binding Count, StringFormat='Records: {0}'}"/>
 				</StackPanel>
 			</DataTemplate>

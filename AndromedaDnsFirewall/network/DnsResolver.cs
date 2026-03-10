@@ -195,16 +195,17 @@ internal class DnsResolver {
 
 	Random rnd = new();
 
-	async public Task<IPAddress> ResolveNoCacheMulti(string name) { // для простоты без кеша.
+	async public Task<IPAddress> ResolveNoCache(string name) { // для простоты без кеша.
 
 		Message msg = new();
 		msg.Questions.Add(new Question { Type = DnsType.A, Name = name });
 		var req = msg.ToByteArray();
 
 		var task1 = resolveInt(NextServ, req);
-		var task2 = resolveInt(NextServ, req);
 
-		var res = ((await AsyncUtils.GetFirstSuccess(task1, task2)) as Task<byte[]>).Result;
+		//var task2 = resolveInt(NextServ, req);
+		//var res = ((await AsyncUtils.GetFirstSuccess(task1, task2)) as Task<byte[]>).Result;
+		var res = await task1;
 
 		Message parsed = new();
 		parsed.Read(res);

@@ -61,7 +61,7 @@ internal class MainHolder {
 		if (Config.Mode == WorkMode.OnlyWhiteList)
 			return LogType.Blocked;
 
-		if (!PublicBlockList.AllLoaded)
+		if (!PublicBlockList.AllRecordsOk)
 			return LogType.Block_PublicBlockListNotReady;
 
 		return LogType.Allowed;

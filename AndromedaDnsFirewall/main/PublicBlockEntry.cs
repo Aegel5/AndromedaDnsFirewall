@@ -17,12 +17,10 @@ internal partial class PublicBlockEntry : ViewModelBase {
 
 	public int UpdateHour { get; set; } = 5;
 	public string Url { get => field; set => SetPropertySaveConf(ref field, value); } = "URL";
-	public bool Enabled { get => field; set => SetPropertySaveConf(ref field, value); }
+	public bool Enabled { get => field; set { SetPropertySaveConf(ref field, value); UpdateReload(); } }
 	[JsonIgnore] public int Count { get => field; set => SetProperty(ref field, value); }
-	[JsonIgnore] public int LastUpdHour { get => field; set => SetProperty(ref field, value); } = -1;
+	[JsonIgnore] public string LastUpdated { get => field; set => SetProperty(ref field, value); }
 
-	public TimePoint dtLastLoad;
-	TimePoint try_load = TimePoint.MaxValue;
-	public bool Loaded => dtLastLoad != default;
+
 
 }

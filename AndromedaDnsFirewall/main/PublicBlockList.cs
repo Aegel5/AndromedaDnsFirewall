@@ -5,27 +5,25 @@ using System.Threading.Tasks;
 namespace AndromedaDnsFirewall;
 
 internal class PublicBlockList {
-	static IEnumerable<PublicBlockEntry> records => Config.Inst.PublicBlockLists;
+	static IEnumerable<PublicBlockEntry> Records => Config.Inst.PublicBlockLists;
 
-	static public bool AllLoaded => records.All(x => !x.Enabled || x.Loaded);
+	static public bool AllRecordsOk => Records.All(x => !x.Enabled || x.Inited);
 
 	static async void Update() {
-
 		while (!GlobalData.QuitPending) {
-			foreach (var elem in records) {
-				await elem.UpdateReload(); // todo parallel
-			}
-			await Task.Delay(1.min());
+			await Task.WhenAll(Records.Select(x => x.UpdateReload()));
+			await Task.Delay(10.sec());
 		}
 
 	}
 
 	static public void Init() {
+		// пулим загрузку списков
 		Update();
 	}
 
 	static public bool IsNeedBlock(string name) {
-		return records.Any(x => x.IsNeedBlock(name));
+		return Records.Any(x => x.IsNeedBlock(name));
 	}
 
 }
