@@ -1,37 +1,25 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AndromedaDnsFirewall.gui;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 namespace AndromedaDnsFirewall;
 
 
-internal partial class PublicBlockEntry : ObservableObject {
+internal partial class PublicBlockEntry : ViewModelBase {
 
-	public PublicBlockEntry(string url) {
-		_url = url;
+	// Универсальный метод для обновления значения
+	protected bool SetPropertySaveConf<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null) {
+		var res = SetProperty(ref storage, value, propertyName);
+		if (res) {
+			Config.NeedSave();
+		}
+		return res;
 	}
 
 	public int UpdateHour { get; set; } = 5;
-
-	string _url;
-	public string Url {
-		get => _url;
-		set {
-			SetProperty(ref _url, value);
-			Config.NeedSave();
-		}
-	}
-
-	bool _enabled = true;
-	public bool Enabled {
-		get => _enabled;
-		set {
-			SetProperty(ref _enabled, value);
-			Config.NeedSave();
-		}
-	}
-
-	[ObservableProperty][property: JsonIgnore] public int count;
-
-	[ObservableProperty][property: JsonIgnore] public int lastUpdHour = -1;
+	public string Url { get => field; set => SetPropertySaveConf(ref field, value); } = "URL";
+	public bool Enabled { get => field; set => SetPropertySaveConf(ref field, value); }
+	[JsonIgnore] public int Count { get => field; set => SetProperty(ref field, value); }
+	[JsonIgnore] public int LastUpdHour { get => field; set => SetProperty(ref field, value); } = -1;
 
 	public TimePoint dtLastLoad;
 	TimePoint try_load = TimePoint.MaxValue;

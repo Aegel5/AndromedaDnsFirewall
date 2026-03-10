@@ -173,7 +173,7 @@ internal class DnsResolver {
 
 		if (Config.Inst.IpCacheTimeMinutes <= 0) {
 			cacheIp.Clear();
-		}else{
+		} else {
 			var cached = cacheIp.Get(domain, type);
 			if (cached != null) {
 				cnt_from_cache++;
@@ -195,11 +195,16 @@ internal class DnsResolver {
 
 	Random rnd = new();
 
-	async public Task<IPAddress> ResolveNoCache(string name) { // для простоты без кеша.
+	async public Task<IPAddress> ResolveNoCacheMulti(string name) { // для простоты без кеша.
+
 		Message msg = new();
 		msg.Questions.Add(new Question { Type = DnsType.A, Name = name });
+		var req = msg.ToByteArray();
 
-		var res = await resolveInt(NextServ, msg.ToByteArray());
+		var task1 = resolveInt(NextServ, req);
+		var task2 = resolveInt(NextServ, req);
+
+		var res = ((await AsyncUtils.GetFirstSuccess(task1, task2)) as Task<byte[]>).Result;
 
 		Message parsed = new();
 		parsed.Read(res);

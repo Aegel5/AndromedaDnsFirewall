@@ -1,6 +1,5 @@
 ﻿using Avalonia.Media;
 using Avalonia.Media.Immutable;
-using Makaretu.Dns;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +15,8 @@ enum LogType {
 	BadRequest,
 	BlockedByPublicList,
 	//Allow_PublicBlockListNotReady,
-	Block_PublicBlockListNotReady
+	Block_PublicBlockListNotReady,
+	Bypass
 }
 
 

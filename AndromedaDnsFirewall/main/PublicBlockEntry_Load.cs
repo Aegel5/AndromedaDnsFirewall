@@ -1,4 +1,5 @@
 ﻿using AndromedaDnsFirewall.dns_server;
+using AndromedaDnsFirewall.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,31 +13,31 @@ namespace AndromedaDnsFirewall;
 
 internal partial class PublicBlockEntry {
 
-	public HashSet<string> cache = new();
+	UInt128[] cache = [];
 
-	static int GetStableHashCode(string str) {
-		unchecked {
-			int hash1 = 5381;
-			int hash2 = hash1;
+	//static int GetStableHashCode(string str) {
+	//	unchecked {
+	//		int hash1 = 5381;
+	//		int hash2 = hash1;
 
-			for (int i = 0; i < str.Length && str[i] != '\0'; i += 2) {
-				hash1 = ((hash1 << 5) + hash1) ^ str[i];
-				if (i == str.Length - 1 || str[i + 1] == '\0')
-					break;
-				hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
-			}
+	//		for (int i = 0; i < str.Length && str[i] != '\0'; i += 2) {
+	//			hash1 = ((hash1 << 5) + hash1) ^ str[i];
+	//			if (i == str.Length - 1 || str[i + 1] == '\0')
+	//				break;
+	//			hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
+	//		}
 
-			return hash1 + (hash2 * 1566083941);
-		}
-	}
-	static string folder => ProgramUtils.BinFolder + "/PublicBlockLists/";
+	//		return hash1 + (hash2 * 1566083941);
+	//	}
+	//}
+	//static string folder => ProgramUtils.BinFolder + "/PublicBlockLists/";
 
-	string path => folder + Math.Abs(GetStableHashCode(Url));
+	//string path => folder + Math.Abs(GetStableHashCode(Url));
 
 	static async ValueTask<Stream> ConnectCallback(SocketsHttpConnectionContext context, CancellationToken cancellationToken) {
 
 		// use our own resolver!
-		var ip = await DnsResolver.Inst.ResolveNoCache(context.DnsEndPoint.Host);
+		var ip = await DnsResolver.Inst.ResolveNoCacheMulti(context.DnsEndPoint.Host);
 		var endPoint = new DnsEndPoint(ip.ToString(), context.DnsEndPoint.Port);
 
 		var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
@@ -46,19 +47,22 @@ internal partial class PublicBlockEntry {
 
 	HttpClient httpClient = new HttpClient(new SocketsHttpHandler { ConnectCallback = ConnectCallback }) { Timeout = 20.sec() };
 
-	void apply(string cont) { // no await
-		cache.Clear();
-		var lines = cont.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-		foreach (var line in lines) {
-			if (line.StartsWith('#'))
-				continue;
-			cache.Add(line.Trim());
-		}
+	void apply(byte[] cont) { // no await
+
+		List<UInt128> temp = new();
+		Utf8Utils.Split(cont, (byte)'\n', x => {
+			if (x[0] == '#') return;
+			temp.Add(HashUtils.QuickHash(x));
+		});
+		cache = temp.ToArray();
+		Array.Sort(cache);
+
 		dtLastLoad = TimePoint.Now;
 		try_load = TimePoint.MaxValue;
 
 		upd_hours();
-		Count = cache.Count;
+		//Count = cache.Count;
+		Count = cache.Length;
 	}
 
 	public async Task LoadFromUrl() {
@@ -67,40 +71,30 @@ internal partial class PublicBlockEntry {
 			var resp = await httpClient.GetAsync(Url);
 			resp.EnsureSuccessStatusCode();
 			using var cont = resp.Content;
-			var res = await cont.ReadAsStringAsync();
-
+			var res = await cont.ReadAsByteArrayAsync();
 			apply(res);
 
-			// dump to file
-			//var f = folder;
-			//var p = path;
-			//await Task.Run(() => {
-			//	Directory.CreateDirectory(f);
-			//	File.WriteAllText(p, res); // todo zip
-			//});
-
-
 		} catch (Exception ex) {
 			Log.Err(ex);
 		}
 	}
 
-	async Task LoadFromFile() {
-		try {
-			// если после рестарта случилась ошибка, возьмем последнее сохранение.
-			var cont = await Task.Run(() => {
+	//async Task LoadFromFile() {
+	//	try {
+	//		// если после рестарта случилась ошибка, возьмем последнее сохранение.
+	//		var cont = await Task.Run(() => {
 
-				if (!File.Exists(path))
-					return null;
-				return File.ReadAllText(path);
-			});
-			if (cont != null) {
-				apply(cont);
-			}
-		} catch (Exception ex) {
-			Log.Err(ex);
-		}
-	}
+	//			if (!File.Exists(path))
+	//				return null;
+	//			return File.ReadAllText(path);
+	//		});
+	//		if (cont != null) {
+	//			apply(cont);
+	//		}
+	//	} catch (Exception ex) {
+	//		Log.Err(ex);
+	//	}
+	//}
 	bool ok => TimePoint.Now < try_load && dtLastLoad.DeltToNow.TotalHours <= UpdateHour;
 	void tryafter(TimeSpan ts) {
 		try_load = TimePoint.Now.Add(ts);
@@ -109,8 +103,9 @@ internal partial class PublicBlockEntry {
 		LastUpdHour = (int)dtLastLoad.DeltToNow.TotalHours;
 	}
 	void clear() {
-		cache.Clear();
-		Count = cache.Count;
+		cache = [];
+		//cache = new();
+		Count = 0;
 
 	}
 	public async Task UpdateReload() {
@@ -143,7 +138,8 @@ internal partial class PublicBlockEntry {
 
 	public bool IsNeedBlock(string name) {
 		if (!Enabled) return false;
-		return cache.Contains(name);
+		return cache.BinarySearch(HashUtils.QuickHash(name.ToUtf8())) >= 0;
+		//return cache.ContainsAsci(name);
 	}
 
 }

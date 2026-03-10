@@ -15,7 +15,7 @@ public partial class MainWindow : Window {
 			ge_cur_block.Header = ge_block.Header;
 		};
 		ge_allow.Click += (a, b) => {
-			Config.Inst.mode = WorkMode.AllowAll;
+			Config.Inst.mode = WorkMode.Bypass;
 			ge_cur_block.Header = ge_allow.Header;
 		};
 

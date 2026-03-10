@@ -5,7 +5,7 @@ namespace AndromedaDnsFirewall;
 public partial class PublicBlockTab : UserControl {
 	public PublicBlockTab() {
 		InitializeComponent();
-		cmd_add.Click += (a, b) => { Config.Inst.PublicBlockLists.Add(new("URL")); };
+		cmd_add.Click += (a, b) => { Config.Inst.PublicBlockLists.Add(new()); };
 		cmd_delete.Click += (a, b) => {
 			var cur = (PublicBlockEntry)ge_publicBlock.SelectedItem;
 			if (cur == null) return;

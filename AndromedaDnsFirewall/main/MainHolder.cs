@@ -2,7 +2,6 @@
 using AndromedaDnsFirewall.Utils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AndromedaDnsFirewall;
 
@@ -20,7 +19,7 @@ class CacheItem {
 enum WorkMode {
 	OnlyWhiteList = 0,
 	AllExceptBlockList = 1,
-	AllowAll = 2
+	Bypass = 2
 	//AllowAllWitoutLogs
 
 }
@@ -48,7 +47,7 @@ internal class MainHolder {
 
 	LogType CalcLogType(string domain) {
 
-		if (Config.Mode == WorkMode.AllowAll)
+		if (Config.Mode == WorkMode.Bypass)
 			return LogType.Allowed;
 
 		UserLists.list.TryGetValue(domain, out RuleBlockType block);
@@ -127,8 +126,9 @@ internal class MainHolder {
 			logitem.SetReqType(request_type);
 
 
-			if (Config.Inst.mode == WorkMode.AllowAll) {
+			if (Config.Inst.mode == WorkMode.Bypass) {
 				// simple bypass request
+				logitem.log_type = LogType.Bypass;
 				dnsItem.answ = await DnsResolver.Inst.RawResolveBypass(dnsItem.req);
 				return; // go to finally 
 			}
@@ -151,7 +151,7 @@ internal class MainHolder {
 				return;
 			}
 
-			if (DnsSimpleParser.OpCode(raw_buf)!=0) {
+			if (DnsSimpleParser.OpCode(raw_buf) != 0) {
 				logitem.log_type = LogType.BadRequest;
 				logitem.ErrorInfo = $"bad opcode";
 				return;

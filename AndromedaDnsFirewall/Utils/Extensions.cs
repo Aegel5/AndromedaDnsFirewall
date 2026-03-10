@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Text;
 
 namespace AndromedaDnsFirewall;
 
 static class Ext_Double {
 	public static int Round_to_int(this double a) => (int)Math.Round(a);
+
+}
+
+static class Ext_string {
+	public static byte[] ToUtf8(this string s) => Encoding.UTF8.GetBytes(s);
 
 }
 

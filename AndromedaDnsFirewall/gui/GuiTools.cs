@@ -1,5 +1,4 @@
 ﻿using Avalonia.Controls;
-using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -7,6 +6,44 @@ using System.Windows.Input;
 namespace AndromedaDnsFirewall;
 
 internal class GuiTools {
+
+	public class RelayCommand : ICommand {
+		private readonly Action _execute;
+
+		// Событие, которое уведомляет UI (например, кнопку), что нужно перепроверить доступность команды
+		public event EventHandler? CanExecuteChanged;
+
+		public RelayCommand(Action execute) {
+			_execute = execute ?? throw new ArgumentNullException(nameof(execute));
+		}
+
+		// Метод для ручного обновления состояния кнопок
+		//public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+
+		public bool CanExecute(object? parameter) => true;
+
+		public void Execute(object? parameter) => _execute();
+	}
+
+	public class AsyncRelayCommand : ICommand {
+		private readonly Func<Task> _execute;
+
+		// Событие, которое уведомляет UI (например, кнопку), что нужно перепроверить доступность команды
+		public event EventHandler? CanExecuteChanged;
+
+		public AsyncRelayCommand(Func<Task> execute) {
+			_execute = execute ?? throw new ArgumentNullException(nameof(execute));
+		}
+
+		// Метод для ручного обновления состояния кнопок
+		//public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+
+		public bool CanExecute(object? parameter) => true;
+
+		async public void Execute(object? parameter) {
+			await _execute();
+		}
+	}
 
 	public static ICommand CreateCommand(Action act) {
 		return new RelayCommand(act);

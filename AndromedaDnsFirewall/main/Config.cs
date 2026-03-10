@@ -11,6 +11,8 @@ class Config {
 	public static Config Inst { get; private set; } = new();
 	static readonly string path = ProgramUtils.FindOurPath("AndromedaDnsFirewall.json");
 
+	static ACounter disableSaveRequest = new();
+
 	static public void Init() {
 
 		SaveLoop();
@@ -19,6 +21,7 @@ class Config {
 			return;
 		}
 		var cont = File.ReadAllText(path); // blocks this thread!
+		using var saveLocker = disableSaveRequest.Take();
 		Inst = JsonSerializer.Deserialize<Config>(cont,
 			new JsonSerializerOptions { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip });
 
@@ -27,21 +30,22 @@ class Config {
 
 	async static void SaveLoop() {
 		while (!GlobalData.QuitPending) {
+			await Task.Delay(5000);
 			if (needSave) {
 				needSave = false;
 				Save();
 			}
-			await Task.Delay(5000);
 		}
 	}
 
 
 	static bool needSave = false;
 	public static void NeedSave() {
+		if (disableSaveRequest.IsTaked) return;
 		needSave = true;
 	}
 
-	static JsonSerializerOptions opt = new JsonSerializerOptions() {
+	static readonly JsonSerializerOptions opt = new JsonSerializerOptions() {
 		//IncludeFields = true,
 		IgnoreReadOnlyFields = true,
 		IgnoreReadOnlyProperties = true,
@@ -54,9 +58,7 @@ class Config {
 		File.WriteAllText(path, cont);// blocks this thread!
 	}
 
-	public ObservableCollection<PublicBlockEntry> PublicBlockLists { get; set; } = [
-		new PublicBlockEntry("https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt")
-		];
+	public ObservableCollection<PublicBlockEntry> PublicBlockLists { get; set; } = new();
 	public bool useServers_DOH { get; set; } = true;
 	public List<string> DnsResolvers_DOH { get; set; } = [
 		"https://1.0.0.1/dns-query",

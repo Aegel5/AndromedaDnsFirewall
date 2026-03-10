@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall;
@@ -10,6 +11,26 @@ public class AsyncUtils {
 			return true;
 		}
 		return false;
+	}
+
+	static public async Task<Task> GetFirstSuccess(params Task[] tasks) {
+		var taskList = tasks.ToList();
+
+		while (taskList.Count > 0) {
+			// Ждем завершения любой из оставшихся задач
+			Task completedTask = await Task.WhenAny(taskList);
+
+			// Если задача завершилась успешно — возвращаем её
+			if (completedTask.Status == TaskStatus.RanToCompletion) {
+				return completedTask;
+			}
+
+			// Если задача упала или была отменена, убираем её из списка и продолжаем поиск
+			taskList.Remove(completedTask);
+		}
+
+		await tasks[0]; // получаем exception
+		throw new Exception("All failed");
 	}
 }
 
@@ -24,6 +45,36 @@ public class AOneTimePulse {
 		_tcs.TrySetResult(true);
 	}
 	public bool IsPulsed => _tcs.Task.IsCompleted;
+}
+
+public class ACounter {
+	public class ACounter_Holder : IDisposable {
+		ACounter data;
+		bool disposed = false;
+
+		public ACounter_Holder(ACounter data) {
+			this.data = data;
+			data.Count++;
+		}
+
+		public void Dispose() { // Поддерживаем множественный Dispose
+			if (disposed) return;
+			disposed = true;
+			data.Count--;
+		}
+	}
+	public IDisposable TakeOrExcept() {
+		if (IsTaked) {
+			throw new Exception("Already taked");
+		}
+		return new ACounter_Holder(this);
+	}
+	public IDisposable Take() {
+		return new ACounter_Holder(this);
+	}
+	public bool IsTaked => Count != 0;
+	public int Count { get; private set; }
+
 }
 
 
