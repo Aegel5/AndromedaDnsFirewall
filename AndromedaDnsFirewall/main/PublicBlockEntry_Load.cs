@@ -3,6 +3,7 @@ using AndromedaDnsFirewall.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -13,7 +14,7 @@ namespace AndromedaDnsFirewall;
 
 internal partial class PublicBlockEntry {
 
-	UInt128[] cache = [];
+	QuickHashType[] cache = [];
 
 	static async ValueTask<Stream> ConnectCallback(SocketsHttpConnectionContext context, CancellationToken cancellationToken) {
 
@@ -28,15 +29,18 @@ internal partial class PublicBlockEntry {
 
 	HttpClient httpClient = new HttpClient(new SocketsHttpHandler { ConnectCallback = ConnectCallback }) { Timeout = 20.sec() };
 
+
 	void Apply(byte[] cont) { // no await
 
-		List<UInt128> temp = new(8192);
+		List<QuickHashType> temp = new(8192);
 		Utf8Utils.Split(cont, (byte)'\n', x => {
 			if (x[0] == '#') return;
 			temp.Add(HashUtils.QuickHash(x));
 		});
 		cache = temp.ToArray();
 		Array.Sort(cache);
+
+		//var ok = cache.AsEnumerable().Distinct().Count() == cache.Length;
 
 		dtLastLoad = TimePoint.Now;
 		Count = cache.Length;
