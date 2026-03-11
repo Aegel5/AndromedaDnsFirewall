@@ -54,15 +54,18 @@ internal class MainHolder {
 
 		if (block == RuleBlockType.Block)
 			return LogType.BlockedByUserList;
+
 		if (block == RuleBlockType.Allow)
 			return LogType.AllowedByUserList;
-		if (PublicBlockList.IsNeedBlock(domain))
-			return LogType.BlockedByPublicList;
-		if (Config.Mode == WorkMode.OnlyWhiteList)
-			return LogType.Blocked;
 
 		if (!PublicBlockList.AllRecordsOk)
 			return LogType.Block_PublicBlockListNotReady;
+
+		if (PublicBlockList.IsNeedBlock(domain))
+			return LogType.BlockedByPublicList;
+
+		if (Config.Mode == WorkMode.OnlyWhiteList)
+			return LogType.Blocked;
 
 		return LogType.Allowed;
 	}

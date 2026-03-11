@@ -120,7 +120,9 @@ internal partial class PublicBlockEntry {
 
 	public bool IsNeedBlock(string name) {
 		if (!Enabled) return false;
-		return cache.BinarySearch(HashUtils.QuickHash(name.ToUtf8())) >= 0;
+		var key = HashUtils.QuickHash(name.ToUtf8());
+		return HashUtils.UltraFastSearch(cache, key) >= 0;
+		//return cache.BinarySearch(key) >= 0;
 	}
 
 }
