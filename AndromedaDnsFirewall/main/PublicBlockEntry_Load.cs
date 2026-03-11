@@ -30,7 +30,7 @@ internal partial class PublicBlockEntry {
 
 	void Apply(byte[] cont) { // no await
 
-		List<UInt128> temp = new();
+		List<UInt128> temp = new(8192);
 		Utf8Utils.Split(cont, (byte)'\n', x => {
 			if (x[0] == '#') return;
 			temp.Add(HashUtils.QuickHash(x));

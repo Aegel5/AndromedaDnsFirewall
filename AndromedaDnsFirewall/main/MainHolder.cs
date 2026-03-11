@@ -31,7 +31,7 @@ class StoreCache {
 internal class MainHolder {
 	public static MainHolder Inst;
 	public StoreCache cache = new();
-	DnsServer server = new();
+	DnsServer server;
 
 	public static void Create() {
 		if (Inst == null) { Inst = new(); }
@@ -42,7 +42,12 @@ internal class MainHolder {
 	public ObservableDeque<LogItem> logSource = new();
 
 	public MainHolder() {
+		server = new DnsServer { ProcessRequest = ProcessRequest };
 		Inst = this;
+	}
+
+	public void Init() {
+		server.Start();
 	}
 
 	LogType CalcLogType(string domain) {
@@ -189,7 +194,7 @@ internal class MainHolder {
 				if (dnsItem.answ == null) {
 					dnsItem.answ = DnsSimpleParser.GenerateEmptyResponse(reqId);
 				}
-				server.CompleteRequest(dnsItem);
+				await server.CompleteRequest(dnsItem);
 			} catch (Exception ex) {
 				Log.Err(ex);
 				logitem.log_type = LogType.Exception;
@@ -198,11 +203,5 @@ internal class MainHolder {
 
 			InsertLogRecord(logitem);
 		}
-	}
-
-
-	public void Init() {
-		server.ProcessRequest = ProcessRequest;
-		server.Start();
 	}
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace AndromedaDnsFirewall.dns_server {
 
 	internal class DnsServer {
-		UdpClient listener;
+		UdpClient? listener;
 		//UdpClient answener;
 
 		async public void Start() {
@@ -40,16 +40,15 @@ namespace AndromedaDnsFirewall.dns_server {
 			}
 		}
 
-		public Action<ServerItem> ProcessRequest;
+		required public Action<ServerItem> ProcessRequest { get; init; }
 
-		async public void CompleteRequest(ServerItem req) {
-			await listener.SendAsync(req.answ, req.endPoint);
+		public ValueTask<int> CompleteRequest(ServerItem req) {
+			return listener.SendAsync(req.answ, req.endPoint);
 		}
 	}
 	class ServerItem {
-		public IPEndPoint endPoint { get; init; }
-
-		public byte[] req;
-		public byte[] answ;
+		required public IPEndPoint endPoint { get; init; }
+		required public byte[] req { get; init; }
+		public byte[]? answ;
 	}
 }
