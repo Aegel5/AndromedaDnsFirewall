@@ -42,7 +42,7 @@ static internal class HashUtils {
 		}
 
 		// Не нашли
-		if (low == low_orig || high == high_orig) {
+		if ((low == low_orig || high == high_orig) && low != 0 && high != n-1)  {
 			// Окно не схлопнулось, но
 			// если данные — честные хэши, этот блок почти никогда не выполнится (вероятность = 10^-8 для 500000 элементов)
 			return Array.BinarySearch(sortedHashes, key);
