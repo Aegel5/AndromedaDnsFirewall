@@ -7,8 +7,6 @@ public partial class TabLog : UserControl {
 	public TabLog() {
 		InitializeComponent();
 
-		MainHolder.Create();
-
 		cmd_block.Click += (a, b) => {
 			var cur = (LogItem)ge_logs.SelectedItem;
 			if (cur == null) return;

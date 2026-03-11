@@ -21,9 +21,6 @@ public partial class App : Application {
 			};
 
 			Config.Init();
-
-			MainHolder.Create();
-
 			desktop.MainWindow = new MainWindow();
 		}
 

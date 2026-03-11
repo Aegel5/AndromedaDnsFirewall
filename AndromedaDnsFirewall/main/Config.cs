@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
@@ -20,11 +21,12 @@ class Config {
 		if (!File.Exists(path)) {
 			return;
 		}
-		var cont = File.ReadAllText(path); // blocks this thread!
-		using var saveLocker = disableSaveRequest.Take();
-		Inst = JsonSerializer.Deserialize<Config>(cont,
-			new JsonSerializerOptions { AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip });
 
+		using var saveLocker = disableSaveRequest.Take();
+		using var stream = File.OpenRead(path);
+		var res = JsonSerializer.Deserialize<Config>(stream, Opt); // blocks this thread!
+		if (res == null) throw new Exception("Can't deserialize");
+		Inst = res;
 
 	}
 
@@ -45,17 +47,19 @@ class Config {
 		needSave = true;
 	}
 
-	static readonly JsonSerializerOptions opt = new JsonSerializerOptions() {
-		//IncludeFields = true,
-		IgnoreReadOnlyFields = true,
-		IgnoreReadOnlyProperties = true,
-		WriteIndented = true
-	};
+	static JsonSerializerOptions Opt =>
+		new JsonSerializerOptions {
+			//IncludeFields = true,
+			IgnoreReadOnlyFields = true,
+			IgnoreReadOnlyProperties = true,
+			WriteIndented = true,
+			AllowTrailingCommas = true,
+			ReadCommentHandling = JsonCommentHandling.Skip
+		};
 
 	static void Save() {
-
-		var cont = JsonSerializer.Serialize(Inst, opt);
-		File.WriteAllText(path, cont);// blocks this thread!
+		using var stream = File.Create(path);
+		JsonSerializer.Serialize(stream, Inst, Opt); // blocks this thread!
 	}
 
 	public ObservableCollection<PublicBlockEntry> PublicBlockLists { get; set; } = new();

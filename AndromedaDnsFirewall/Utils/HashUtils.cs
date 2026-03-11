@@ -12,7 +12,7 @@ static internal class HashUtils {
 
 		int n = sortedHashes.Length;
 
-		if (n == 0) 
+		if (n == 0)
 			return -1;
 
 		// 1. Математический прогноз (0 обращений к памяти)
@@ -22,8 +22,8 @@ static internal class HashUtils {
 		// 2. Устанавливаем локальное окно (например, 512 элементов)
 		// Это окно гарантированно попадет в L2/L3 кэш после первого обращения
 		const int window = 4096;
-		int low = Math.Max(0, pos - window/2);
-		int high = Math.Min(n - 1, pos + window/2);
+		int low = Math.Max(0, pos - window / 2);
+		int high = Math.Min(n - 1, pos + window / 2);
 
 		int low_orig = low;
 		int high_orig = high;
@@ -33,7 +33,7 @@ static internal class HashUtils {
 			int mid = (low + high) >> 1;
 			var midVal = sortedHashes[mid];
 
-			if (midVal == key) 
+			if (midVal == key)
 				return mid;
 
 			if (midVal < key) {
@@ -44,7 +44,7 @@ static internal class HashUtils {
 		}
 
 		// Не нашли
-		if ((low == low_orig || high == high_orig) && low != 0 && high != n-1)  {
+		if ((low == low_orig || high == high_orig) && low != 0 && high != n - 1) {
 			// Окно не схлопнулось, но
 			// если данные — честные хэши, этот блок почти никогда не выполнится (вероятность = 10^-8 для 500000 элементов)
 			return Array.BinarySearch(sortedHashes, key);

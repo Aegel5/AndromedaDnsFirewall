@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AndromedaDnsFirewall;
 
-internal class PublicBlockList {
+internal static class PublicBlockList {
 	static IEnumerable<PublicBlockEntry> Records => Config.Inst.PublicBlockLists;
 
 	static public bool AllRecordsOk => Records.All(x => !x.Enabled || x.Inited);

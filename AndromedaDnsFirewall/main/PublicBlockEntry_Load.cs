@@ -3,7 +3,6 @@ using AndromedaDnsFirewall.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -60,12 +59,12 @@ internal partial class PublicBlockEntry {
 		}
 	}
 
-	TimePoint dtLastLoad { 
+	TimePoint dtLastLoad {
 		get => field;
 		set {
 			field = value;
 			UpdateH();
-		}  
+		}
 	}
 	TimePoint stopLoadingUntil;
 	bool IsCacheActual => dtLastLoad.DeltToNow.TotalHours <= UpdateHour;
@@ -117,7 +116,7 @@ internal partial class PublicBlockEntry {
 				// есть старая версия, поэтому задержка больше.
 				stopLoadingUntil = TimePoint.Now.Add(10.min());
 			}
-		} catch(Exception ex) {
+		} catch (Exception ex) {
 			Log.Err(ex);
 		}
 	}

@@ -9,22 +9,20 @@ internal enum RuleBlockType {
 	Block,
 	Allow
 }
-internal class UserLists {
+internal static class UserLists {
 
-	static readonly string path = $"{ProgramUtils.BinFolder}/user_list.json";
-
-
+	static readonly string path = Path.Combine(ProgramUtils.BinFolder, "user_list.json");
 
 	public static void Save() {
-		string jsonString = JsonSerializer.Serialize(list);
-		File.WriteAllText(path, jsonString);// blocks this thread!
-		return;
-
+		using var stream = File.Create(path);
+		JsonSerializer.Serialize(stream, list); // blocks this thread!
 	}
 	public static void Load() {
 		if (!File.Exists(path)) return;
-		var jsonString = File.ReadAllText(path);
-		list = JsonSerializer.Deserialize<Dictionary<string, RuleBlockType>>(jsonString);
+		using var stream = File.OpenRead(path);
+		var res = JsonSerializer.Deserialize<Dictionary<string, RuleBlockType>>(stream);
+		if (res != null)
+			list = res;
 	}
 
 	public static void Delete(string host) {

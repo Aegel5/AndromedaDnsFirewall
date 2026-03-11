@@ -43,7 +43,7 @@ namespace AndromedaDnsFirewall.dns_server {
 		required public Action<ServerItem> ProcessRequest { get; init; }
 
 		public ValueTask<int> CompleteRequest(ServerItem req) {
-			return listener.SendAsync(req.answ, req.endPoint);
+			return listener!.SendAsync(req.answ, req.endPoint);
 		}
 	}
 	class ServerItem {

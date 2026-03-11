@@ -1,20 +1,8 @@
 ﻿using AndromedaDnsFirewall.dns_server;
 using AndromedaDnsFirewall.Utils;
 using System;
-using System.Collections.Generic;
 
 namespace AndromedaDnsFirewall;
-
-class CacheItem {
-	public string Name;
-	public string[] ip;
-	//DateTime dtLastUse;
-	//int next;
-}
-
-
-
-//record RuleRec (string name, bool block);
 
 enum WorkMode {
 	OnlyWhiteList = 0,
@@ -24,18 +12,9 @@ enum WorkMode {
 
 }
 
-class StoreCache {
-	public Dictionary<string, CacheItem> cacheLst = new();
-}
-
 internal class MainHolder {
-	public static MainHolder Inst;
-	public StoreCache cache = new();
+	public static MainHolder Inst { get; private set; } = new();
 	DnsServer server;
-
-	public static void Create() {
-		if (Inst == null) { Inst = new(); }
-	}
 
 	public long logChangeId { get; private set; }
 
@@ -43,7 +22,6 @@ internal class MainHolder {
 
 	public MainHolder() {
 		server = new DnsServer { ProcessRequest = ProcessRequest };
-		Inst = this;
 	}
 
 	public void Init() {
