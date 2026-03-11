@@ -9,7 +9,8 @@
  - Кеширование результатов с поддержкой IPv6 и других типов запросов (по умолчанию 15 минут).
  - Кроссплатформенность - возможность работы на Linux и Mac.
 
-<img width="1426" height="746" alt="изображение" src="https://github.com/user-attachments/assets/ef2e4753-221e-4178-86db-0199f2f7eab0" />
+<img width="983" height="748" alt="изображение" src="https://github.com/user-attachments/assets/9adab727-cdc1-4a48-92ba-fbefa046ee82" />
+
 
 
 
