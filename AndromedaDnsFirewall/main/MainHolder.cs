@@ -16,8 +16,6 @@ internal class MainHolder {
 	public static MainHolder Inst { get; private set; } = new();
 	DnsServer server;
 
-	public long logChangeId { get; private set; }
-
 	public ObservableDeque<LogItem> logSource = new();
 
 	public MainHolder() {

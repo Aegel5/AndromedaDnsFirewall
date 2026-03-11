@@ -1,5 +1,4 @@
-﻿//## Deque
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,11 +11,9 @@ public class Deque<T> : IEnumerable<T>, IList<T>, IList {
 	private T[] _buffer;
 	public Deque() : this(16) { }
 
-
 	public Deque(int capacity) {
-		Debug.Assert(capacity > 0);
+		Debug.Assert(capacity >= 0);
 		capacity = (int)BitOperations.RoundUpToPowerOf2((uint)capacity);
-		//Debug.Assert((capacity & (capacity - 1)) == 0);
 		_mask = capacity - 1;
 		_offset = 0;
 		_buffer = new T[capacity];
@@ -36,12 +33,12 @@ public class Deque<T> : IEnumerable<T>, IList<T>, IList {
 	}
 
 	[MethodImpl(256)] ref T get(int i) => ref _buffer[(_offset + i) & _mask];
-	public void PushBack(T item) { if (Count == _buffer.Length) Extend(); get(Count++) = item; }
+	public void PushBack(T item) { ExtendIfFull(); get(Count++) = item; }
 	public void Add(T item) { PushBack(item); }
 	public T PopBack() { Debug.Assert(Count > 0); return get(--Count); }
 
 	public void PushFront(T item) {
-		if (Count == _buffer.Length) Extend();
+		ExtendIfFull();
 		Count++;
 		_buffer[(--_offset) & _mask] = item;
 	}
@@ -52,16 +49,24 @@ public class Deque<T> : IEnumerable<T>, IList<T>, IList {
 		return _buffer[(_offset++) & _mask];
 	}
 
-	private void Extend() {
-		int capacity = _buffer.Length;
-		Debug.Assert(Count == capacity);
-		T[] tmpBuf = new T[2 * capacity];
-		for (int i = 0; i < capacity; i++) {
-			tmpBuf[i] = get(i);
-		}
-		_mask = 2 * capacity - 1;
+	private void ExtendIfFull() {
+		if (Count < _buffer.Length)
+			return;
+
+		int newCapacity = _buffer.Length == 0 ? 4 : _buffer.Length * 2;
+		T[] tmpBuf = new T[newCapacity];
+
+		// 1. Копируем всё от _offset до конца старого массива в начало нового
+		int indexStart = _offset & _mask;
+		int cntTail = Count - indexStart;
+		Array.Copy(_buffer, indexStart, tmpBuf, 0, cntTail);
+		// 2. Если буфер был «разрезан» (offset > 0), 
+		// копируем оставшуюся часть из начала старого массива в продолжение нового
+		Array.Copy(_buffer, 0, tmpBuf, cntTail, Count - cntTail);
+
 		_buffer = tmpBuf;
 		_offset = 0;
+		_mask = newCapacity - 1;
 	}
 
 	public int Count { get; private set; }
@@ -97,7 +102,7 @@ public class Deque<T> : IEnumerable<T>, IList<T>, IList {
 
 	public void Insert(int index, T item) {
 		Debug.Assert(0 <= index && index <= Count);
-		if (Count == _buffer.Length) Extend();
+		ExtendIfFull();
 		if (Count - index - 1 <= index) {
 			for (int i = Count - 1; i >= index; i--) {
 				get(i + 1) = get(i);
@@ -191,7 +196,3 @@ public class Deque<T> : IEnumerable<T>, IList<T>, IList {
 		}
 	}
 }
-
-
-
-
