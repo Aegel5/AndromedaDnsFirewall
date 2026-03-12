@@ -42,7 +42,7 @@ internal class DnsResolver {
 		//udpclient.Client.ReceiveTimeout = 3000;
 		//udpclient.Client.SendTimeout = 3000;
 	}
-	HttpClient httpClient = new() { Timeout = 3.sec() };
+	readonly HttpClient httpClient = new() { Timeout = 3.sec() };
 
 	public static IPAddress GetDefaultGateway() {
 		return NetworkInterface

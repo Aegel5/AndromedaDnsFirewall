@@ -15,6 +15,9 @@ internal partial class PublicBlockEntry {
 
 	QuickHashType[] cache = [];
 
+	static readonly HttpClient httpClient
+		= new(new SocketsHttpHandler { ConnectCallback = ConnectCallback }) { Timeout = 20.sec() };
+
 	static async ValueTask<Stream> ConnectCallback(SocketsHttpConnectionContext context, CancellationToken cancellationToken) {
 
 		// use our own resolver!
@@ -26,7 +29,6 @@ internal partial class PublicBlockEntry {
 		return new NetworkStream(socket, ownsSocket: true);
 	}
 
-	HttpClient httpClient = new HttpClient(new SocketsHttpHandler { ConnectCallback = ConnectCallback }) { Timeout = 20.sec() };
 
 
 	void Apply(byte[] cont) { // no await
