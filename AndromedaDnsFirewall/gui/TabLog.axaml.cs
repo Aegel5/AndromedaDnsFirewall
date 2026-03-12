@@ -10,14 +10,14 @@ public partial class TabLog : UserControl {
 		cmd_block.Click += (a, b) => {
 			var cur = (LogItem)ge_logs.SelectedItem;
 			if (cur == null) return;
-			UserLists.Block(cur.domain);
+			UserLists.BlockDns(cur.domain);
 			UserBlockTab.Inst.Update();
 
 		};
 		cmd_allow.Click += (a, b) => {
 			var cur = (LogItem)ge_logs.SelectedItem;
 			if (cur == null) return;
-			UserLists.Allow(cur.domain);
+			UserLists.AllowDns(cur.domain);
 			UserBlockTab.Inst.Update();
 		};
 

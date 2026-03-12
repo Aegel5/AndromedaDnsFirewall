@@ -1,45 +1,58 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace AndromedaDnsFirewall;
 
-internal enum RuleBlockType {
-	Null = 0,
-	Block,
-	Allow
-}
+
 internal static class UserLists {
 
-	static readonly string path = Path.Combine(ProgramUtils.BinFolder, "user_list.json");
+	static readonly string path = Path.Combine(ProgramUtils.BinFolder, "UserRules.json");
 
 	public static void Save() {
 		using var stream = File.Create(path);
-		JsonSerializer.Serialize(stream, list); // blocks this thread!
+		JsonSerializer.Serialize(stream, userRules.Values, Opt); // blocks this thread!
 	}
+	static JsonSerializerOptions Opt =>
+	new JsonSerializerOptions {
+		//IncludeFields = true,
+		IgnoreReadOnlyFields = true,
+		IgnoreReadOnlyProperties = true,
+		//WriteIndented = true,
+		AllowTrailingCommas = true,
+		ReadCommentHandling = JsonCommentHandling.Skip
+	};
 	public static void Load() {
 		if (!File.Exists(path)) return;
 		using var stream = File.OpenRead(path);
-		var res = JsonSerializer.Deserialize<Dictionary<string, RuleBlockType>>(stream);
+		var res = JsonSerializer.Deserialize<List<UserRuleModel>>(stream, Opt);
 		if (res != null)
-			list = res;
+			userRules = res.ToDictionary(x => (x.Target, x.Type));
 	}
 
-	public static void Delete(string host) {
-		list.Remove(host);
+	public static void Delete(UserRuleModel entry) {
+		userRules.Remove((entry.Target, entry.Type));
 		Save();
 	}
 
-	public static void Block(string host) {
-		list[host] = RuleBlockType.Block;
+	public static void BlockDns(string host) {
+		userRules.GetOrAdd((host, UserRuleType.Dns), k => new(host)).Action = RuleBlockAction.Block;
 		Save();
 	}
 
-	public static void Allow(string host) {
-		list[host] = RuleBlockType.Allow;
+	public static void AllowDns(string host) {
+		userRules.GetOrAdd((host, UserRuleType.Dns), k => new(host)).Action = RuleBlockAction.Allow;
 		Save();
 	}
 
-	static public Dictionary<string, RuleBlockType> list = new();
+	public static RuleBlockAction? GetDnsAction(string domain) {
+		if (userRules.TryGetValue((domain, UserRuleType.Dns), out var res)) {
+			return res.Action;
+		}
+		return null;
+	}
+
+	static public Dictionary<(string, UserRuleType), UserRuleModel> userRules = new();
 
 }

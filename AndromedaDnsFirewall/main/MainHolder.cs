@@ -31,12 +31,12 @@ internal class MainHolder {
 		if (Config.Mode == WorkMode.Bypass)
 			return LogType.Allowed;
 
-		UserLists.list.TryGetValue(domain, out RuleBlockType block);
+		var userBlock = UserLists.GetDnsAction(domain);
 
-		if (block == RuleBlockType.Block)
+		if (userBlock == RuleBlockAction.Block)
 			return LogType.BlockedByUserList;
 
-		if (block == RuleBlockType.Allow)
+		if (userBlock == RuleBlockAction.Allow)
 			return LogType.AllowedByUserList;
 
 		if (!PublicBlockList.AllRecordsOk)

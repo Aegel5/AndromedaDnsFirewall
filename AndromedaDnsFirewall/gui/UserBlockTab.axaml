@@ -18,8 +18,7 @@
 	<ListBox.ItemTemplate>
 		<DataTemplate>
 			<StackPanel  Orientation="Horizontal">
-				<TextBlock Margin="3" Text="{Binding Value}" FontSize="12" TextWrapping="NoWrap" />
-				<TextBlock Margin="3" Text="{Binding Key}" FontSize="12" TextWrapping="NoWrap" />
+				<TextBlock Margin="3" Text="{Binding}" FontSize="12" TextWrapping="NoWrap" />
 			</StackPanel>
 		</DataTemplate>
 	</ListBox.ItemTemplate>

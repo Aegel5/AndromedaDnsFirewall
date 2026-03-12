@@ -2,12 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:Meda="using:AndromedaDnsFirewall"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="AndromedaDnsFirewall.TabLog">
+             x:Class="AndromedaDnsFirewall.TabLog"
+			 >
 	
 	<ListBox 
 		AutoScrollToSelectedItem="False"  
-		Name="ge_logs">
+		Name="ge_logs"
+		
+	>
 
 		<ListBox.Styles>
 			<Style Selector="ListBoxItem">
@@ -31,7 +35,7 @@
 		
 		</ListBox.Styles>
 		<ListBox.ItemTemplate>
-			<DataTemplate>
+			<DataTemplate x:DataType="Meda:LogItem">
 				<TextBlock   Text="{Binding}" FontSize="12" TextWrapping="NoWrap" />
 			</DataTemplate>
 		</ListBox.ItemTemplate>

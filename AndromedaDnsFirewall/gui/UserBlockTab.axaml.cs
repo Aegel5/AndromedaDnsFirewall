@@ -11,14 +11,15 @@ public partial class UserBlockTab : UserControl {
 
 		cmd_delete.Click += (a, b) => {
 			if (ge_logs.SelectedItem == null) return;
-			var cur = (KeyValuePair<string, RuleBlockType>)ge_logs.SelectedItem;
-			UserLists.Delete(cur.Key);
+			var cur = (UserRuleModel?)ge_logs.SelectedItem;
+			if(cur != null)
+				UserLists.Delete(cur);
 			Update();
 		};
 	}
 
 	public void Update() {
 		ge_logs.ItemsSource = null;
-		ge_logs.ItemsSource = UserLists.list;
+		ge_logs.ItemsSource = UserLists.userRules.Values;
 	}
 }
