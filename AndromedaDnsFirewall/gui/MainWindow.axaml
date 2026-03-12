@@ -17,12 +17,18 @@
 			<TabItem Header="Dns log">
 				<views:TabLog />
 			</TabItem>
-			<TabItem Header="User block-list">
+			<TabItem Header="Process log">
+				<views:ProcessTabLog />
+			</TabItem>				
+			<TabItem Header="User rules">
 				<views:UserBlockTab />
 			</TabItem>
-			<TabItem Header="Public block-list">
+			<TabItem Header="Public DNS block-lists">
 				<views:PublicBlockTab />
 			</TabItem>
+			<TabItem Header="Settings">
+				<views:SettingsTab />
+			</TabItem>			
 		</TabControl>
 	</DockPanel>
 </Window>

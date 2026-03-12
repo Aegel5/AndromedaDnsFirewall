@@ -24,16 +24,27 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.12" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.12" />
-    <PackageReference Include="System.IO.Hashing" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.30" />
+    <PackageReference Include="System.IO.Hashing" Version="10.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DnsLib\DnsLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="gui\SettingsTab.axaml.cs">
+      <DependentUpon>SettingsTab.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="gui\ProcessTabLog.axaml.cs">
+      <DependentUpon>ProcessTabLog.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
