@@ -1,18 +1,21 @@
-# AndromedaDnsFirewall
- Andromeda Dns Firewall - simple DNS firewall for your PC
+# Andromeda Firewall
+ AndromedaFirewall - simple firewall for your PC
 
- Возможности:
+ ## Модуль Dns Proxy
  - Показывает все обращения к DNS резолверу.
- - Централизованная блокировка телеметрии и рекламы по public спискам.
+ - Централизованная блокировка телеметрии и рекламы по public domains спискам.
  - Пользовательские списки блокировки.
  - DNS-over-Https.
  - Кеширование результатов с поддержкой IPv6 и других типов запросов (по умолчанию 15 минут).
  - Кроссплатформенность - возможность работы на Linux и Mac.
 
+ Для установки необходимо указать `127.0.0.1:53` для DNS в настройках сети.
+
+ ## Модуль Process Connections Firewall (используя WFP) (Не реализованно)
+ - Показывает все текущие подключения процессов 
+
 <img width="983" height="748" alt="изображение" src="https://github.com/user-attachments/assets/9adab727-cdc1-4a48-92ba-fbefa046ee82" />
 
 
 
-
-Для установки необходимо указать `127.0.0.1:53` для DNS в настройках сети.
 
