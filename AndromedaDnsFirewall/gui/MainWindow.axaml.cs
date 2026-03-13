@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using AndromedaDnsFirewall.main;
+using Avalonia.Controls;
 
 namespace AndromedaDnsFirewall;
 
@@ -25,6 +26,7 @@ public partial class MainWindow : Window {
 		PublicBlockList.Init();
 		MainHolder.Inst.Init();
 		UserBlockTab.Inst.Update();
+		ProcessTracer.Start();
 
 	}
 }

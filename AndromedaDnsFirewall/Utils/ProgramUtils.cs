@@ -51,5 +51,7 @@ public static class ProgramUtils {
 
 	public static DateTime StartTime { get; private set; } = DateTime.UtcNow;
 
+	static public bool IsElevated => Environment.IsPrivilegedProcess;
+
 
 }

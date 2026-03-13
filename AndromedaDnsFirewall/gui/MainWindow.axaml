@@ -5,7 +5,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AndromedaDnsFirewall.MainWindow"
 		xmlns:views="clr-namespace:AndromedaDnsFirewall"
-        Title="AndromedaDnsFirewall">
+        Title="AndromedaFirewall">
 	<DockPanel>
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Name="ge_cur_block" Header="Block and cache">

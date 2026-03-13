@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace AndromedaDnsFirewall;
 
@@ -7,10 +8,11 @@ namespace AndromedaDnsFirewall;
 // из-за того что DateTime может резко изменяться после перевода системного времени
 // + DateTime - довольно тяжелый класс сам по себе.
 internal record struct TimePoint : IComparable<TimePoint> {
-	public long Ticks { get; private set; } // alwasy pos
+	private long _ticks;
+	public long Ticks { get => _ticks; } // alwasy pos
 	public TimePoint() { }
 	public TimePoint(long ticks) {
-		Ticks = ticks;
+		_ticks = ticks;
 	}
 	static Stopwatch timer = Stopwatch.StartNew();
 	static readonly long safe_delt_ticks = TimeSpan.FromDays(3000).Ticks;// нам нужен запас значений от 0 иначем некторые условия могут не срабатывать на старте работы
@@ -28,5 +30,9 @@ internal record struct TimePoint : IComparable<TimePoint> {
 	public static bool operator >(TimePoint a, TimePoint b) => a.Ticks > b.Ticks;
 	public static bool operator >=(TimePoint a, TimePoint b) => a.Ticks >= b.Ticks;
 	public static bool operator <=(TimePoint a, TimePoint b) => a.Ticks <= b.Ticks;
+
+	public void AssignSafe(TimePoint other) {
+		Interlocked.Exchange(ref _ticks, other._ticks);
+	}
 }
 
