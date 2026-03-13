@@ -5,6 +5,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AndromedaDnsFirewall.SettingsTab">
 
-
+	<StackPanel>
+		<CheckBox Name="ge_autostart">
+			Add to autostart
+		</CheckBox>
+	</StackPanel>
 	
 </UserControl>

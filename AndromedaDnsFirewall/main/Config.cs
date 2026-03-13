@@ -80,6 +80,13 @@ class Config {
 		];
 	public string ServerAddress { get; set; } = "127.0.0.1:53";
 
+	public bool AddToAutostart { 
+		get => field; 
+		set {
+			if (value != field) { field = value; NeedSave(); }
+		}
+	} = false;
+
 	public int IpCacheTimeMinutes { get; set; } = 15;
 
 	[JsonIgnore]

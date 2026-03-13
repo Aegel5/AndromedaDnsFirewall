@@ -8,16 +8,16 @@ using System.Threading;
 namespace AndromedaDnsFirewall.main;
 
 enum ProcessTraceType  {
-	TCPv4 = 0, 
-	TcpV6 = 1, 
-	UdpV4 = 2, 
-	UdpV6 = 3
+	TCP = 0, 
+	TCP6 = 1, 
+	UDP = 2, 
+	UDP6 = 3
 }
 
 // Мульти-поточный класс - наш мостик между трейсером и остальной программой
 // Пока после создания вообще никогда не удаляется
-// Может читается и меняться параллельно.
-class ProcessInfo {
+// Пишется и создается только из трейсера. Читается откуда угодно (на volatile забиваем).
+class ProcessInfoModel {
 	[InlineArray(4)] public struct TCounts { private int _firstElement; }
 
 	public string Name = "";
@@ -28,23 +28,26 @@ class ProcessInfo {
 	}
 	TCounts counts;
 	static long nextId = 15;
-	public long Id = nextId++;
-	public TimePoint lastUpdate;
+	public long Id { get; init; } = nextId++;
 
-	public void SetNowUpdated() {
-		lastUpdate.AssignSafe(TimePoint.Now);
+	public TimePoint _lastNotified;
+
+	public ProcessInfoModel(string name, string fullname) {
+		this.Name = name;
+		this.fullPath = fullname;
 	}
 
 	public void AddType(ProcessTraceType type) {
 		Interlocked.Increment(ref counts[(int)type]);
 	}
+	public int GetCount(ProcessTraceType type) => Volatile.Read(ref counts[(int)type]);
 
 	public override string ToString() {
 		// пока используем строку
 		string build(ProcessTraceType t) {
-			var cnt = counts[(int)ProcessTraceType.TCPv4];
-			return cnt == 0 ? "" : $" {t}({cnt})";
+			var cnt = counts[(int)t];
+			return cnt == 0 ? "" : $" {t}:{cnt}";
 		}
-		return $"{Name}, {fullPath}{build(ProcessTraceType.TCPv4)}{build(ProcessTraceType.TcpV6)}{build(ProcessTraceType.UdpV4)}{build(ProcessTraceType.UdpV6)}";
+		return $"PID:{LastPid} {Name}{build(ProcessTraceType.TCP)}{build(ProcessTraceType.TCP6)}{build(ProcessTraceType.UDP)}{build(ProcessTraceType.UDP6)} {fullPath}";
 	}
 }

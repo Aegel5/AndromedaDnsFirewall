@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace AndromedaDnsFirewall.main; 
-internal class ProcessListModel {
+internal static class ProcessListModel {
 
-	static readonly ObservableDeque<ProcessInfo> deque = new();
+	static readonly ObservableDeque<ProcessInfoModel> deque = new();
 
 	// выходная дорожка из класса
-	public static IEnumerable<ProcessInfo> ModelBinding => deque;
+	public static IEnumerable<ProcessInfoModel> ModelBinding => deque;
 
 	// входная и единственная дорожка в класс
-	static public void NotifyChanged(ProcessInfo info) {
+	static public void NotifyChanged(ProcessInfoModel info) {
 		// Алогоритм пока простой: ищем запись в первых 20 записях. Нашли - обновляем, нет - вставляем в начало (могут быть дубликаты это норм
 		for (int i = 0; i < Math.Min(20, deque.Count); i++) {
 			if (deque[i].Id == info.Id) {

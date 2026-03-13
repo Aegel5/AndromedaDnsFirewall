@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using AndromedaDnsFirewall.main;
+using Avalonia.Controls;
 
 
 namespace AndromedaDnsFirewall;
@@ -6,5 +7,7 @@ namespace AndromedaDnsFirewall;
 public partial class ProcessTabLog : UserControl {
 	public ProcessTabLog() {
 		InitializeComponent();
+
+		ge_logs.ItemsSource = ProcessListModel.ModelBinding;
 	}
 }
